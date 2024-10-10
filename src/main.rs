@@ -1,13 +1,12 @@
 use anyhow;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 
-use std::f32::consts::E;
 use std::sync::{Arc, Mutex};
 use std::{thread, time};
 use std::time::{Duration, Instant};
 //use time::Instant;
 
-use crate::terminal_grid::{TerminalGrid, ColoredChar, init_terminal, WIDTH, HEIGHT};
+use crate::terminal_grid::{TerminalGrid, ColoredChar, init_terminal };
 use audio_process_buffer::{AudioProcessBuffer, audio_callback, err_callback};
 
 pub mod audio_process_buffer;
@@ -70,35 +69,37 @@ fn main() -> Result<(), anyhow::Error> {
         let elapsed = start.elapsed().as_secs_f32() % 20.0;
         
         if elapsed <= 10.0 {
-            for j in 0..WIDTH{
-                let jf = j as f32;
-                let jf = jf * (local_zcr+0.01) * 0.4 * (WIDTH as f32);
+            for j in 0..grid.width{
+                let mut jf = j as f32;
+                jf = (jf / (grid.width as f32)) * 720.0;
+                jf = jf * (local_zcr+0.01) * 0.4 * (grid.height as f32);
                 let sin_out = ((jf*0.04 + 0.8).sin()+1.0)/2.0;
                 
-                let sin_scale = (15.0*(local_rms * local_rms))*(sin_out*0.80 + 0.2) +0.5;
+                let mut sin_scale = sin_out * 0.028 * (grid.height as f32);
+                sin_scale = (15.0*(local_rms * local_rms))*(sin_scale*0.80 + 0.2) +0.5;
                 let size = sin_scale as usize;
-                let mut size = size.min(HEIGHT/2);
+                let mut size = size.min(grid.height/2);
                 let mut w: String = String::from_utf8(vec![b'*'; size*2]).unwrap();
-                let mut s: String = String::from_utf8(vec![b'.';(HEIGHT-w.len()) / 2]).unwrap();
+                let mut s: String = String::from_utf8(vec![b'.';(grid.height-w.len()) / 2]).unwrap();
     
                 grid.draw_string_vertical(j, 0, &s, COLOR_BG_DOT);
-                grid.draw_string_vertical(j, (HEIGHT-w.len())/2, &w, COLOR_1);
-                grid.draw_string_vertical(j, (HEIGHT-w.len())/2 + w.len(), &s, COLOR_BG_DOT);
+                grid.draw_string_vertical(j, (grid.height-w.len())/2, &w, COLOR_1);
+                grid.draw_string_vertical(j, (grid.height-w.len())/2 + w.len(), &s, COLOR_BG_DOT);
     
                 size = size/2;
                 w= String::from_utf8(vec![b'*'; size*2]).unwrap();
-                grid.draw_string_vertical(j, (HEIGHT-w.len())/2, &w, COLOR_2);
+                grid.draw_string_vertical(j, (grid.height-w.len())/2, &w, COLOR_2);
     
                 size = size/2;
                 w= String::from_utf8(vec![b'*'; size*2]).unwrap();
-                grid.draw_string_vertical(j, (HEIGHT-w.len())/2, &w, COLOR_3);
+                grid.draw_string_vertical(j, (grid.height-w.len())/2, &w, COLOR_3);
             }
         } 
         else {
-            let center_x = WIDTH / 2;
-            let center_y = HEIGHT / 2;
-            for i in 0..WIDTH{
-                for j in 0..HEIGHT{
+            let center_x = grid.width / 2;
+            let center_y = grid.height / 2;
+            for i in 0..grid.width{
+                for j in 0..grid.height{
                     let dist_x = (i as f32) - (center_x as f32);
                     let dist_y = (j as f32) - (center_y as f32);
                     let dist = (dist_y.powi(2)).sqrt();

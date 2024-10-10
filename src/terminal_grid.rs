@@ -1,46 +1,52 @@
 use std::io;
 use ansi_term::Color::RGB;
 use crossterm::execute;
-use crossterm::style::{Print};
+use crossterm::style::{Colored, Print};
 use crossterm::cursor::{MoveTo, Hide};
-use crossterm::terminal::{SetSize, BeginSynchronizedUpdate, EndSynchronizedUpdate};
+use crossterm::terminal::{SetSize, BeginSynchronizedUpdate, EndSynchronizedUpdate, EnterAlternateScreen};
 
-pub const WIDTH: usize = 120;
-pub const HEIGHT: usize = 32;
-const GRID_SIZE: usize = WIDTH*HEIGHT;
 const BLOCK_CHAR: char = '\u{2588}';
 
 pub fn init_terminal() {
     execute!(
         io::stdout(),
-        //EnterAlternateScreen,
-        SetSize(WIDTH as u16, HEIGHT as u16),
         Hide
     ).unwrap();
     print!("\x1B[2J");
 }
 
 pub struct TerminalGrid {
-    grid: [ColoredChar; GRID_SIZE],
-    last_grid: [ColoredChar; GRID_SIZE],
-    bg_color: ansi_term::Color
+    grid: Vec<ColoredChar>, 
+    last_grid: Vec<ColoredChar>,
+    bg_color: ansi_term::Color,
+    pub width: usize,
+    pub height: usize,
+    pub grid_size: usize
 }
 
 impl TerminalGrid {
     pub fn new(bg_color: (u8,u8,u8)) -> TerminalGrid {
+        let (w,h) = crossterm::terminal::size().unwrap();
+        let w = w as usize;
+        let h = h as usize;
+        let grid_size = w*h;
         TerminalGrid {
-            grid : [ ColoredChar{c:BLOCK_CHAR, color:(255,255,255),} ; GRID_SIZE ],
-            last_grid : [ ColoredChar{c:BLOCK_CHAR, color:(255,255,255),} ; GRID_SIZE ],
-            bg_color: RGB(bg_color.0, bg_color.1, bg_color.2)
+            grid : vec![ColoredChar{c:BLOCK_CHAR, color:(255,255,255)} ; grid_size],
+            last_grid : vec![ ColoredChar{c:BLOCK_CHAR, color:(255,255,255),} ; grid_size],
+            bg_color: RGB(bg_color.0, bg_color.1, bg_color.2),
+            width: w,
+            height: h,
+            grid_size: grid_size
         }
     }
 
     pub fn index_2d(self: & TerminalGrid, i: usize, j: usize) -> usize {
-        return j*WIDTH+i;
+        return j*self.width+i;
     }
     
     pub fn set_cell(self: &mut TerminalGrid, i: usize, j:usize, c: ColoredChar) {
-        self.grid[self.index_2d(i, j)] = c;
+        let t = self.index_2d(i, j);
+        self.grid[t]= c;
     }
 
     pub fn get_cell(self: & TerminalGrid, i:usize, j:usize) -> ColoredChar {
@@ -49,7 +55,7 @@ impl TerminalGrid {
 
     pub fn get_line(self: & TerminalGrid, j:usize) -> String {
         let start_idx = self.index_2d(0, j);
-        self.grid[start_idx..start_idx+WIDTH]
+        self.grid[start_idx..start_idx+self.width]
             .iter()
             .map(|cc| cc.to_string(&self.bg_color))
             .collect()
@@ -57,13 +63,13 @@ impl TerminalGrid {
 
     pub fn get_lines(self: & TerminalGrid) -> String {
         let mut result = String::from("");
-        for (i,line) in self.grid.chunks(WIDTH).enumerate(){
+        for (i,line) in self.grid.chunks(self.width).enumerate(){
             let joined_line: String = line.iter()
                                            .map( |colored_char| colored_char.to_string(&self.bg_color) )
                                            .collect();
             result.push_str(&joined_line);
 
-            if i < HEIGHT-1{
+            if i < self.height-1{
                 result.push('\n');
             }
         }
@@ -71,41 +77,51 @@ impl TerminalGrid {
     }
 
     pub fn draw_string_horizontal(self: &mut TerminalGrid, x:usize, y:usize, string: &String, color: (u8,u8,u8)) {
-        let y = y.min(HEIGHT).max(0);
-        for i in 0..string.len().min(WIDTH){
+        let y = y.min(self.height).max(0);
+        for i in 0..string.len().min(self.width){
             self.set_cell(x + i, y, ColoredChar{c:string.as_bytes()[i] as char, color: color} );
         }
     }
 
     pub fn draw_string_vertical(self: &mut TerminalGrid, x:usize, y:usize, string: &String, color: (u8,u8,u8)) {
-        let x = x.min(WIDTH).max(0);
+        let x = x.min(self.width).max(0);
 
-        for i in 0..string.len().min(HEIGHT){
+        for i in 0..string.len().min(self.height){
             self.set_cell(x, y + i, ColoredChar{c:string.as_bytes()[i] as char, color: color} );
         }
     }
 
     pub fn draw_box(self: &mut TerminalGrid, x:usize, y:usize, w:usize, h:usize, c: ColoredChar) {
-        for i in x..(x+w).min(WIDTH) {
-            for j in y..(y+h).min(HEIGHT) {
+        for i in x..(x+w).min(self.width) {
+            for j in y..(y+h).min(self.height) {
                 self.set_cell(i, j, c);
             }
         }
     }
 
     pub fn reset(self: &mut TerminalGrid) {
-        for i in 0..WIDTH {
-            for j in 0..HEIGHT {
+        for i in 0..self.width{
+            for j in 0..self.height{
                 self.set_cell(i, j, ColoredChar{ c:' ', color:(0,0,0)});
-                
             }
         }
     }
 
     pub fn display(self: &mut TerminalGrid) {
+        let (w,h) = crossterm::terminal::size().unwrap();
+        let w = w as usize;
+        let h = h as usize;
+        if w != self.width || h != self.height {
+            self.width = w;
+            self.height = h;
+            self.grid_size = w*h;
+            self.grid.resize(self.grid_size, ColoredChar{c:' ', color: (0,0,0)});
+            self.last_grid.resize(self.grid_size, ColoredChar{c: '.', color: (0,0,0)});
+        }
+        
         // Detect diffs and copy into "last_grid"
         let mut change = false;
-        for i in 0..GRID_SIZE{
+        for i in 0..self.grid_size{
             if self.grid[i] != self.last_grid[i] {
                 self.last_grid[i] = self.grid[i];
                 change = true;
@@ -124,6 +140,7 @@ impl TerminalGrid {
             Hide,
             EndSynchronizedUpdate
         ).unwrap();
+
     }
 }
 
