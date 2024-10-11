@@ -1,9 +1,11 @@
 use std::io;
 use ansi_term::Color::RGB;
 use crossterm::execute;
-use crossterm::style::{Colored, Print};
+use crossterm::style::Print;
 use crossterm::cursor::{MoveTo, Hide};
-use crossterm::terminal::{SetSize, BeginSynchronizedUpdate, EndSynchronizedUpdate, EnterAlternateScreen};
+use crossterm::terminal::{BeginSynchronizedUpdate, EndSynchronizedUpdate};
+
+use crate::colors::Color;
 
 const BLOCK_CHAR: char = '\u{2588}';
 
@@ -25,7 +27,7 @@ pub struct TerminalGrid {
 }
 
 impl TerminalGrid {
-    pub fn new(bg_color: (u8,u8,u8)) -> TerminalGrid {
+    pub fn new(bg_color: Color) -> TerminalGrid {
         let (w,h) = crossterm::terminal::size().unwrap();
         let w = w as usize;
         let h = h as usize;
