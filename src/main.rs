@@ -52,8 +52,10 @@ fn main() -> Result<(), anyhow::Error> {
     let start = Instant::now();
 
     let animators: Vec<fn(f32,f32,f32,&mut TerminalGrid)> = vec![
-        |z,r,e,g| {animators::sine_like(z,r,e,g)},
-        |z,r,e,g| {animators::wiggly(z,r,e,g)},
+        animators::sine_like,
+        animators::wiggly,
+        animators::test,
+        //animators::test2
     ];   
 
     loop {

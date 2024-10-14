@@ -5,9 +5,10 @@ use crossterm::style::Print;
 use crossterm::cursor::{MoveTo, Hide};
 use crossterm::terminal::{BeginSynchronizedUpdate, EndSynchronizedUpdate};
 
+use crate::colors::{BLOCK_CHAR, COLOR_BG};
+
 use crate::colors::Color;
 
-const BLOCK_CHAR: char = '\u{2588}';
 
 pub fn init_terminal() {
     execute!(
@@ -20,7 +21,6 @@ pub fn init_terminal() {
 pub struct TerminalGrid {
     grid: Vec<ColoredChar>, 
     last_grid: Vec<ColoredChar>,
-    bg_color: ansi_term::Color,
     pub width: usize,
     pub height: usize,
     pub grid_size: usize
@@ -33,9 +33,8 @@ impl TerminalGrid {
         let h = h as usize;
         let grid_size = w*h;
         TerminalGrid {
-            grid : vec![ColoredChar{c:BLOCK_CHAR, color:(255,255,255)} ; grid_size],
+            grid : vec![ColoredChar{c:BLOCK_CHAR, color:bg_color} ; grid_size],
             last_grid : vec![ ColoredChar{c:BLOCK_CHAR, color:(255,255,255),} ; grid_size],
-            bg_color: RGB(bg_color.0, bg_color.1, bg_color.2),
             width: w,
             height: h,
             grid_size: grid_size
@@ -59,7 +58,7 @@ impl TerminalGrid {
         let start_idx = self.index_2d(0, j);
         self.grid[start_idx..start_idx+self.width]
             .iter()
-            .map(|cc| cc.to_string(&self.bg_color))
+            .map(|cc| cc.to_string(COLOR_BG))
             .collect()
     }
 
@@ -67,7 +66,7 @@ impl TerminalGrid {
         let mut result = String::from("");
         for (i,line) in self.grid.chunks(self.width).enumerate(){
             let joined_line: String = line.iter()
-                                           .map( |colored_char| colored_char.to_string(&self.bg_color) )
+                                           .map( |colored_char| colored_char.to_string(COLOR_BG) )
                                            .collect();
             result.push_str(&joined_line);
 
@@ -102,9 +101,13 @@ impl TerminalGrid {
     }
 
     pub fn reset(self: &mut TerminalGrid) {
-        for i in 0..self.width{
-            for j in 0..self.height{
-                self.set_cell(i, j, ColoredChar{ c:' ', color:(0,0,0)});
+        self.fill(ColoredChar{ c:' ', color: COLOR_BG});
+    }
+
+    pub fn fill(self: &mut TerminalGrid, char: ColoredChar) {
+        for i in 0..self.width {
+            for j in 0..self.height {
+                self.set_cell(i,j, char);
             }
         }
     }
@@ -117,8 +120,8 @@ impl TerminalGrid {
             self.width = w;
             self.height = h;
             self.grid_size = w*h;
-            self.grid.resize(self.grid_size, ColoredChar{c:' ', color: (0,0,0)});
-            self.last_grid.resize(self.grid_size, ColoredChar{c: '.', color: (0,0,0)});
+            self.grid.resize(self.grid_size, ColoredChar{c:' ', color: COLOR_BG});
+            self.last_grid.resize(self.grid_size, ColoredChar{c: '.', color: COLOR_BG});
         }
         
         // Detect diffs and copy into "last_grid"
@@ -153,9 +156,10 @@ pub struct ColoredChar {
 }
 
 impl ColoredChar {
-    fn to_string(self: &ColoredChar, bg_color: &ansi_term::Color) -> String {
-        let (r,g,b) = self.color;
-        RGB(r,g,b).on(*bg_color).paint(self.c.to_string()).to_string()
+    fn to_string(self: &ColoredChar, bg_color: Color) -> String {
+        let color = RGB(self.color.0, self.color.1, self.color.2);
+        let bg_color = RGB(bg_color.0, bg_color.1, bg_color.2);
+        color.on(bg_color).paint(self.c.to_string()).to_string()
     }
 }
 
@@ -164,3 +168,4 @@ impl PartialEq for ColoredChar {
         self.c == other.c && self.color == other.color
     }
 }
+
