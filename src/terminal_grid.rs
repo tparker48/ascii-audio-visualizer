@@ -47,6 +47,9 @@ impl TerminalGrid {
     
     pub fn set_cell(self: &mut TerminalGrid, i: usize, j:usize, c: ColoredChar) {
         let t = self.index_2d(i, j);
+        if t > self.grid_size {
+            return;
+        }
         self.grid[t]= c;
     }
 
@@ -77,18 +80,21 @@ impl TerminalGrid {
         return result;
     }
 
-    pub fn draw_string_horizontal(self: &mut TerminalGrid, x:usize, y:usize, string: &String, color: (u8,u8,u8)) {
-        let y = y.min(self.height).max(0);
-        for i in 0..string.len().min(self.width){
-            self.set_cell(x + i, y, ColoredChar{c:string.as_bytes()[i] as char, color: color} );
-        }
+    pub fn draw_string_horizontal(self: &mut TerminalGrid, x:usize, y:usize, c: ColoredChar, len: usize) {
+        self.draw_loop(c, x, y, 1, 0, len);
     }
 
-    pub fn draw_string_vertical(self: &mut TerminalGrid, x:usize, y:usize, string: &String, color: (u8,u8,u8)) {
-        let x = x.min(self.width).max(0);
+    pub fn draw_string_vertical(self: &mut TerminalGrid, x:usize, y:usize, c: ColoredChar, len: usize) {
+        self.draw_loop(c, x, y, 0, 1, len);
+    }
 
-        for i in 0..string.len().min(self.height){
-            self.set_cell(x, y + i, ColoredChar{c:string.as_bytes()[i] as char, color: color} );
+    pub fn draw_loop(&mut self, c: ColoredChar, x: usize, y: usize, dx: i16, dy: i16, reps: usize) {
+        let mut pos_x = x as i16;
+        let mut pos_y = y as i16;
+        for _ in 0..reps{
+            self.set_cell((pos_x) as usize, (pos_y) as usize, c);
+            pos_x += dx;
+            pos_y += dy;
         }
     }
 
