@@ -51,9 +51,9 @@ fn main() -> Result<(), anyhow::Error> {
     let start = Instant::now();
 
     let animators: Vec<fn(&AudioFeatures,f32,&mut TerminalGrid)> = vec![
-        //animators::sine_like,
-        //animators::wiggly,
-        animators::test,
+        animators::sine_like,
+        animators::wiggly,
+        animators::wip,
     ];   
 
     loop {

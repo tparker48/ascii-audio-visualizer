@@ -67,7 +67,7 @@ pub fn wiggly(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
     }
 }
 
-pub fn test(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
+pub fn wip(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
     let rms = features.root_mean_squared.smoothed_val;
     
     let x_pad = 4;
