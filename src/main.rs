@@ -7,7 +7,7 @@ use std::time::{Instant};
 //use time::Instant;
 
 use terminal_grid::{ TerminalGrid, init_terminal };
-use audio_process_buffer::{AudioProcessBuffer, audio_callback, err_callback};
+use audio_process_buffer::{audio_callback, err_callback, AudioFeatures, AudioProcessBuffer};
 use colors::COLOR_BG;
 
 pub mod audio_process_buffer;
@@ -46,33 +46,30 @@ fn main() -> Result<(), anyhow::Error> {
     let mut grid = TerminalGrid::new(COLOR_BG);
     init_terminal();
     
-    let mut local_zcr = 0.0;
-    let mut local_rms = 0.0;
+    let mut audio_features;
 
     let start = Instant::now();
 
-    let animators: Vec<fn(f32,f32,f32,&mut TerminalGrid)> = vec![
-        animators::sine_like,
-        animators::wiggly,
+    let animators: Vec<fn(&AudioFeatures,f32,&mut TerminalGrid)> = vec![
+        //animators::sine_like,
+        //animators::wiggly,
         animators::test,
-        //animators::test2
     ];   
 
     loop {
         thread::sleep(time::Duration::from_secs_f32(0.015));
         match process_buffer_ptr.try_lock() {
             Ok(buffer) => {
-                local_zcr = buffer.zcr.smoothed_val;
-                local_rms = buffer.rms.smoothed_val;
+                audio_features = buffer.features;
             },
-            Err(_) => {}
+            Err(_) => {continue;}
         }
 
         let elapsed = start.elapsed().as_secs_f32();
         let animator_idx = ((elapsed as i32)/4) % (animators.len() as i32);  
         let animator_idx = animator_idx as usize;
 
-        animators[animator_idx](local_rms, local_zcr, elapsed, &mut grid);
+        animators[animator_idx](&audio_features, elapsed, &mut grid);
         grid.display();
     }
 

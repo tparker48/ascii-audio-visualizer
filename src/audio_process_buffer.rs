@@ -1,5 +1,5 @@
 use std::sync::{Arc, Mutex};
-use rustfft::{num_complex::Complex, FftPlanner};
+use rustfft::{num_complex::{Complex, ComplexFloat}, FftPlanner};
 use cpal::StreamError;
 
 const BUFFER_SIZE: usize = 512;
@@ -12,9 +12,7 @@ pub struct AudioProcessBuffer {
     buffer: [f32; BUFFER_SIZE],
     head: usize,
     fft: Arc<dyn rustfft::Fft<f32>>,
-
-    pub rms: SmoothedValue,
-    pub zcr: SmoothedValue
+    pub features: AudioFeatures
 }
 
 impl AudioProcessBuffer {
@@ -25,8 +23,7 @@ impl AudioProcessBuffer {
             buffer: [0.0; BUFFER_SIZE],
             head: 0,
             fft: planner.plan_fft_forward(FFT_SIZE),
-            rms: SmoothedValue::new(0.0, true),
-            zcr: SmoothedValue::new(0.0, false),
+            features: AudioFeatures::new()
         }
     }
 
@@ -44,35 +41,56 @@ impl AudioProcessBuffer {
 
     pub fn process_full_buffer(self: &mut AudioProcessBuffer) {
         self.head = 0;
+        
+        self.features.root_mean_squared.write(
+            AudioProcessBuffer::compute_root_mean_squared(&self.buffer));
 
-        // Zero Crossing Rate
+        self.features.zero_crossing_rate.write(
+            AudioProcessBuffer::compute_zero_crossing_rate(&self.buffer));
+            
+        // FFT
+        //let mut fft_buffer: Vec<Complex<f32>> = self.buffer.iter().map(|r|{
+        //    Complex::from(r)
+        //}).collect();
+        //self.fft.process(&mut fft_buffer);
+    }
+
+    fn compute_root_mean_squared(buffer: &[f32; BUFFER_SIZE]) -> f32 {
+        let sum_of_squares: f32 = buffer.iter().map(|x|x*x).sum();
+        let rms: f32 = (sum_of_squares / (buffer.len() as f32)).sqrt();
+        return rms;
+    }
+
+    fn compute_zero_crossing_rate(buffer: &[f32; BUFFER_SIZE]) -> f32 {
         let mut zero_crosses = 0;
-        let mut prev_sample = self.buffer[0];
-        for &sample in self.buffer.iter(){
+        let mut prev_sample = buffer[0];
+        for &sample in buffer.iter(){
             if (sample > 0.0 && prev_sample < 0.0) || (sample < 0.0 && prev_sample > 0.0) {
                 zero_crosses+=1;
             }
             prev_sample = sample;
         }
-        let zcr = (zero_crosses as f32) / (self.buffer.len() as f32);
-        self.zcr.write(zcr);
-
-        // Root Mean Squared Energy
-        let sum_of_squares: f32 = self.buffer.iter().map(|number| number*number).sum();
-        let rms = (sum_of_squares / self.buffer.len() as f32).sqrt();
-        self.rms.write(rms);
-        
-        // FFT
-        let mut fft_buffer: Vec<Complex<f32>> = self.buffer.iter().map(|r|{
-            Complex::from(r)
-        }).collect();
-        self.fft.process(&mut fft_buffer);
-        
-
-        //let freq_max = (max_idx as f32)*((FS/2) as f32)/((FFT_SIZE) as f32);
+        let zcr = (zero_crosses as f32) / (buffer.len() as f32);
+        return zcr;
     }
 }
 
+#[derive(Copy, Clone)]
+pub struct AudioFeatures {
+    pub root_mean_squared: SmoothedValue,
+    pub zero_crossing_rate: SmoothedValue
+}
+
+impl AudioFeatures {
+    fn new() -> AudioFeatures{
+        AudioFeatures {
+            root_mean_squared: SmoothedValue::new(0.0, true),
+            zero_crossing_rate: SmoothedValue::new(0.0, false)
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
 pub struct SmoothedValue {
     buffer: [f32; SMOOTHING_SIZE],
     head: usize,
