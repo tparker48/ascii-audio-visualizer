@@ -45,12 +45,12 @@ impl TerminalGrid {
         return j*self.width+i;
     }
     
-    pub fn set_cell(self: &mut TerminalGrid, i: usize, j:usize, c: ColoredChar) {
+    pub fn set_cell(self: &mut TerminalGrid, c: char, color: Color, i: usize, j:usize) {
         let t = self.index_2d(i, j);
         if t > self.grid_size {
             return;
         }
-        self.grid[t]= c;
+        self.grid[t]= ColoredChar{c:c, color:color};
     }
 
     pub fn get_cell(self: & TerminalGrid, i:usize, j:usize) -> ColoredChar {
@@ -80,40 +80,40 @@ impl TerminalGrid {
         return result;
     }
 
-    pub fn draw_string_horizontal(self: &mut TerminalGrid, x:usize, y:usize, c: ColoredChar, len: usize) {
-        self.draw_loop(c, x, y, 1, 0, len);
-    }
-
-    pub fn draw_string_vertical(self: &mut TerminalGrid, x:usize, y:usize, c: ColoredChar, len: usize) {
-        self.draw_loop(c, x, y, 0, 1, len);
-    }
-
-    pub fn draw_loop(&mut self, c: ColoredChar, x: usize, y: usize, dx: i16, dy: i16, reps: usize) {
+    pub fn draw_line(&mut self, c: char, color: Color, x: usize, y: usize, dx: i16, dy: i16, reps: usize) {
         let mut pos_x = x as i16;
         let mut pos_y = y as i16;
         for _ in 0..reps{
-            self.set_cell((pos_x) as usize, (pos_y) as usize, c);
+            self.set_cell(c, color, (pos_x) as usize, (pos_y) as usize);
             pos_x += dx;
             pos_y += dy;
         }
     }
 
-    pub fn draw_box(self: &mut TerminalGrid, x:usize, y:usize, w:usize, h:usize, c: ColoredChar) {
+    pub fn draw_line_horizontal(self: &mut TerminalGrid, c: char, color: Color, x:usize, y:usize, len: usize) {
+        self.draw_line(c, color, x, y, 1, 0, len);
+    }
+
+    pub fn draw_line_vertical(self: &mut TerminalGrid, c: char, color: Color, x:usize, y:usize, len: usize) {
+        self.draw_line(c, color, x, y, 0, 1, len);
+    }
+
+    pub fn draw_box(self: &mut TerminalGrid, c: char, color: Color, x:usize, y:usize, w:usize, h:usize) {
         for i in x..(x+w).min(self.width) {
             for j in y..(y+h).min(self.height) {
-                self.set_cell(i, j, c);
+                self.set_cell(c, color, i, j);
             }
         }
     }
 
     pub fn reset(self: &mut TerminalGrid) {
-        self.fill(ColoredChar{ c:' ', color: COLOR_BG});
+        self.fill(' ', COLOR_BG);
     }
 
-    pub fn fill(self: &mut TerminalGrid, char: ColoredChar) {
+    pub fn fill(self: &mut TerminalGrid, c: char, color: Color) {
         for i in 0..self.width {
             for j in 0..self.height {
-                self.set_cell(i,j, char);
+                self.set_cell(c, color, i,j);
             }
         }
     }
@@ -161,7 +161,12 @@ pub struct ColoredChar {
     pub color: (u8,u8,u8)
 }
 
+pub type CC = ColoredChar;
+
 impl ColoredChar {
+    pub fn new(character: char, color: Color) -> ColoredChar {
+        ColoredChar{c:character, color:color}
+    }
     fn to_string(self: &ColoredChar, bg_color: Color) -> String {
         let color = RGB(self.color.0, self.color.1, self.color.2);
         let bg_color = RGB(bg_color.0, bg_color.1, bg_color.2);

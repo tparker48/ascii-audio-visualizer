@@ -1,5 +1,5 @@
 use crate::audio_process_buffer::AudioFeatures;
-use crate::terminal_grid::{TerminalGrid, ColoredChar};
+use crate::terminal_grid::{TerminalGrid, CC};
 use crate::colors::{ BLOCK_CHAR, COLOR_1, COLOR_2, COLOR_3, COLOR_BG_ALT}; 
 
 
@@ -11,7 +11,12 @@ pub fn sine_like(features: &AudioFeatures, _elapsed: f32, grid: &mut TerminalGri
     
     // fill background
     for x in 0..grid.width {
-        grid.draw_string_vertical(x, 0, ColoredChar{c: '.' , color:COLOR_BG_ALT}, grid.height);
+        grid.draw_line_vertical(
+            '.',
+            COLOR_BG_ALT,
+            x, 
+            0, 
+            grid.height);
     }
     
     // draw waves
@@ -27,9 +32,24 @@ pub fn sine_like(features: &AudioFeatures, _elapsed: f32, grid: &mut TerminalGri
  
         // draw waves 
         let wave_size = 2*(sin_out as usize).min(grid.height/2);
-        grid.draw_string_vertical(x, center_idx-wave_size, ColoredChar{c:'*', color:COLOR_1}, wave_size);
-        grid.draw_string_vertical(x, center_idx-wave_size/2, ColoredChar{c:'*', color:COLOR_2}, wave_size/2);
-        grid.draw_string_vertical(x, center_idx-wave_size/2, ColoredChar{c:'*', color:COLOR_3}, wave_size/4);
+        grid.draw_line_vertical(
+            '*',
+            COLOR_1,
+            x, 
+            center_idx-wave_size, 
+            wave_size);
+        grid.draw_line_vertical(
+            '*', 
+            COLOR_2, 
+            x, 
+            center_idx-wave_size/2, 
+            wave_size/2);
+        grid.draw_line_vertical(
+            '*', 
+            COLOR_3, 
+            x, 
+            center_idx-wave_size/4, 
+            wave_size/4);
     }
 } 
 
@@ -58,7 +78,7 @@ pub fn wiggly(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
                 col = COLOR_BG_ALT;
                 c = '+';
             }
-            grid.set_cell(i, j, ColoredChar{ c: c, color: col });
+            grid.set_cell(c, col, i, j);
         }
     }
 }
@@ -67,14 +87,15 @@ pub fn wip(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
     let rms = features.root_mean_squared.smoothed_val;
     let x_pad = 4;
     let y_pad = 2;
-    //println!("{rms}");
-    grid.fill(ColoredChar{ c:'.', color: COLOR_BG_ALT });
+    
+    grid.fill('.', COLOR_BG_ALT);
     grid.draw_box(
+        'x',
+        COLOR_2,
         x_pad, 
         y_pad, 
         grid.width - 2*x_pad, 
         grid.height - 2*y_pad, 
-        ColoredChar{c:'x', color:COLOR_2}
     );
 
     for i in x_pad..grid.width-x_pad{
@@ -83,7 +104,13 @@ pub fn wip(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
         sin_out *= rms*rms; 
         sin_out = 0.8*((grid.height - 2*y_pad) as f32) * sin_out;
         let sin_height = sin_out as usize;
-        grid.draw_string_vertical(i, (grid.height - sin_height)/2, ColoredChar{c:'.', color:COLOR_BG_ALT}, sin_height);
+        grid.draw_line_vertical(
+            '.',
+            COLOR_BG_ALT, 
+            i, 
+            (grid.height - sin_height)/2, 
+            sin_height
+        );
     }
 
 }
@@ -98,6 +125,14 @@ pub fn test(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
         let mut bin_height = (bins[i].smoothed_val * 1.5) as usize;
         bin_height = bin_height.min(grid.height);
         let color = (255,0,0);
-        grid.draw_loop(ColoredChar{c: BLOCK_CHAR, color: color}, i, grid.height-1, 0, -1, bin_height);
+        grid.draw_line(
+            BLOCK_CHAR, 
+            color, 
+            i, 
+            grid.height-1, 
+            0, 
+            -1, 
+            bin_height
+        );
     }
 }
