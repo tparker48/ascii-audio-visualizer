@@ -23,7 +23,7 @@ pub fn sine_like(features: &AudioFeatures, _elapsed: f32, grid: &mut TerminalGri
     for x in 0..grid.width{
         let mut x_position = (x as f32) / (grid.width as f32) ;
         x_position *= (zcr+0.01) * 288.0 * (grid.height as f32);
-        x_position = (x_position * 0.04) + 0.8;
+        x_position = (x_position * 0.01) + 0.8;
         
         // sin output is rescaled from [-1,1] to [0,1]
         let mut sin_out = (x_position.sin()+1.0)/2.0;
@@ -31,24 +31,24 @@ pub fn sine_like(features: &AudioFeatures, _elapsed: f32, grid: &mut TerminalGri
         sin_out = 15.0* rms * rms * (sin_out*0.80 + 0.2) + 0.5;
  
         // draw waves 
-        let wave_size = 2*(sin_out as usize).min(grid.height/2);
+        let wave_size = 2*(sin_out as usize).min(center_idx);
         grid.draw_line_vertical(
             '*',
             COLOR_1,
             x, 
-            center_idx-wave_size, 
+            center_idx-wave_size/2, 
             wave_size);
         grid.draw_line_vertical(
             '*', 
             COLOR_2, 
             x, 
-            center_idx-wave_size/2, 
+            center_idx-wave_size/4, 
             wave_size/2);
         grid.draw_line_vertical(
             '*', 
             COLOR_3, 
             x, 
-            center_idx-wave_size/4, 
+            center_idx-wave_size/8, 
             wave_size/4);
     }
 } 
@@ -115,7 +115,7 @@ pub fn wip(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
 
 }
 
-pub fn test(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
+pub fn spectrum(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
     let bins = features.fft_bins;
     grid.reset();
     for i in 0..bins.len() {
@@ -124,10 +124,9 @@ pub fn test(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
         }
         let mut bin_height = (bins[i].smoothed_val * 1.5) as usize;
         bin_height = bin_height.min(grid.height);
-        let color = (255,0,0);
         grid.draw_line(
             BLOCK_CHAR, 
-            color, 
+            COLOR_1,
             i, 
             grid.height-1, 
             0, 
