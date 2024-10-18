@@ -52,9 +52,9 @@ fn main() -> Result<(), anyhow::Error> {
 
     let animators: Vec<fn(&AudioFeatures,f32,&mut TerminalGrid)> = vec![
         animators::sine_like,
+        animators::spectrum,
+        animators::wip,
         animators::wiggly,
-        animators::spectrum
-        //animators::wip,
     ];   
 
     loop {

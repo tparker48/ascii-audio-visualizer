@@ -84,7 +84,7 @@ impl TerminalGrid {
         let mut pos_x = x as i16;
         let mut pos_y = y as i16;
         for _ in 0..reps{
-            self.set_cell(c, color, (pos_x) as usize, (pos_y) as usize);
+            self.set_cell(c, color, pos_x as usize, pos_y as usize);
             pos_x += dx;
             pos_y += dy;
         }

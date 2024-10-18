@@ -1,17 +1,17 @@
-use std::{cmp::Ordering, sync::{Arc, Mutex}};
-use rustfft::{num_complex::{Complex, ComplexFloat}, FftPlanner};
+use std::sync::{Arc, Mutex};
+use rustfft::{num_complex::Complex, FftPlanner};
 use cpal::StreamError;
 
-const BUFFER_SIZE: usize = 512;
-const FFT_SIZE: usize = 512;
-const SMOOTHING_SIZE: usize = 9;
+const BUFFER_SIZE: usize = 1024; 
+const FFT_SIZE: usize = 1024;
+const SMOOTHING_SIZE: usize = 10;
 const FS: usize = 48000;
 const FFT_BIN_WIDTH: f32 = (FS as f32) / (FFT_SIZE as f32);
 
-fn bin_idx_to_center_freq(bin_idx: usize) -> f32 {
+pub fn bin_idx_to_center_freq(bin_idx: usize) -> f32 {
     return ((bin_idx as f32) * FFT_BIN_WIDTH) + 0.5*FFT_BIN_WIDTH;
 }
-fn bin_idx_to_freq(bin_idx: usize) -> f32 {
+pub fn bin_idx_to_freq(bin_idx: usize) -> f32 {
     return (bin_idx as f32) * FFT_BIN_WIDTH;
 }
 
@@ -63,19 +63,22 @@ impl AudioProcessBuffer {
         
         // Cut off second half of FFT
         fft_buffer = fft_buffer[0..((fft_buffer.len())/2)].to_vec();
-
-
-       let mut max_idx = 0;
-        for i in 1..fft_buffer.len() {
-            if fft_buffer[i].norm() > fft_buffer[max_idx].norm() {
-                max_idx = i;
-            }
+        let magnitudes: Vec<f32> = fft_buffer
+                                    .iter()
+                                    .map(|complex|complex.norm())
+                                    .collect();
+        let mut max_mag = 1.0;
+        for i in 0..magnitudes.len(){
+            if magnitudes[i] > max_mag {
+                max_mag = magnitudes[i];
+            } 
         }
-        let max_freq = bin_idx_to_freq(max_idx);
-        //println!("{max_freq}");
-
-        for i in 0..FFT_SIZE/2 {
-            self.features.fft_bins[i].write(fft_buffer[i].norm());
+        let magnitudes: Vec<f32> = magnitudes
+                                        .iter()
+                                        .map(|mag|mag/max_mag)
+                                        .collect();
+        for i in 0..fft_buffer.len() {
+            self.features.fft_bins[i].write(magnitudes[i]);
         }
     }
 

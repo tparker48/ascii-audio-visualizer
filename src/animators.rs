@@ -1,4 +1,4 @@
-use crate::audio_process_buffer::AudioFeatures;
+use crate::audio_process_buffer::{bin_idx_to_freq, AudioFeatures};
 use crate::terminal_grid::{TerminalGrid, CC};
 use crate::colors::{ BLOCK_CHAR, COLOR_1, COLOR_2, COLOR_3, COLOR_BG_ALT}; 
 
@@ -23,7 +23,7 @@ pub fn sine_like(features: &AudioFeatures, _elapsed: f32, grid: &mut TerminalGri
     for x in 0..grid.width{
         let mut x_position = (x as f32) / (grid.width as f32) ;
         x_position *= (zcr+0.01) * 288.0 * (grid.height as f32);
-        x_position = (x_position * 0.01) + 0.8;
+        x_position = (x_position * 0.03) + 0.8;
         
         // sin output is rescaled from [-1,1] to [0,1]
         let mut sin_out = (x_position.sin()+1.0)/2.0;
@@ -116,22 +116,71 @@ pub fn wip(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
 }
 
 pub fn spectrum(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
-    let bins = features.fft_bins;
-    grid.reset();
-    for i in 0..bins.len() {
-        if i >= grid.width {
-            continue;
+    grid.fill('=', COLOR_BG_ALT);
+
+    // convert FFT bins to log-scaled frequency to magnitude map
+    let freq_spectrum: Vec<(f32,f32)> = 
+        features.fft_bins
+                .iter()
+                .enumerate()
+                .map(|(bin_idx, sv)| {
+                    (bin_idx_to_freq(bin_idx), sv.smoothed_val)
+                })
+                .filter(|(freq,_mag)| *freq >= 12.0 && *freq <= 10000.0)
+                .map(|(freq, mag)|{
+                    (freq.log2(), (15.0*mag).log10())
+                })       
+                .collect();
+    let max_freq = freq_spectrum[freq_spectrum.len()-1].0;
+    let min_freq = freq_spectrum[0].0;
+    let col_width = (max_freq-min_freq) / (grid.width as f32);
+    let mut heights = vec![0.0; grid.width];
+    for i in 0..grid.width {
+        let range_start = min_freq + col_width * (i as f32);
+        let range_end = range_start + col_width;
+        let mut hits = 0;
+        for (freq,magnitude) in freq_spectrum.iter() {
+            if range_start <= *freq && *freq < range_end {
+                heights[i] += *magnitude;
+                hits += 1;
+            }
         }
-        let mut bin_height = (bins[i].smoothed_val * 1.5) as usize;
-        bin_height = bin_height.min(grid.height);
-        grid.draw_line(
-            BLOCK_CHAR, 
-            COLOR_1,
-            i, 
-            grid.height-1, 
-            0, 
-            -1, 
-            bin_height
-        );
+        heights[i] /= hits as f32;
     }
+
+    let cutoff = 0.1;
+    let mut last_nonzero_l = 0.0;
+    let mut last_nonzero_r = 0.0;
+    for i in 0..grid.width{
+        if heights[i] > 0.1 {
+            last_nonzero_l = heights[i];
+        } else {
+            heights[i] = last_nonzero_l;
+        }
+        
+        last_nonzero_l *= 0.7;
+        
+    }
+    for i in 0..grid.width {
+        let rev_i = grid.width - i - 1;
+        if heights[rev_i] > 0.1 {
+            last_nonzero_r = heights[rev_i];
+        } else {
+            heights[rev_i] = last_nonzero_r;
+        }
+        last_nonzero_r *= 0.7;
+
+    }
+
+    for i in 0..grid.width {
+        let col_height = ((heights[i]*(grid.height as f32)) as usize).min(grid.height);
+        let char = '=';
+        let color = COLOR_1;
+        let x = i;
+        let y = grid.height -1;
+        grid.draw_line(char, color, x, y, 0, -1, col_height);
+    }
+
+
+    
 }
