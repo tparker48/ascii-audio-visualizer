@@ -1,6 +1,6 @@
 use crate::audio_process_buffer::{bin_idx_to_freq, AudioFeatures};
 use crate::terminal_grid::{TerminalGrid, CC};
-use crate::colors::{ BLOCK_CHAR, COLOR_1, COLOR_2, COLOR_3, COLOR_BG_ALT}; 
+use crate::colors::{ BLOCK_CHAR, COLOR_1, COLOR_2, COLOR_3, COLOR_BG, COLOR_BG_ALT}; 
 
 
 pub fn sine_like(features: &AudioFeatures, _elapsed: f32, grid: &mut TerminalGrid) {
@@ -85,6 +85,7 @@ pub fn wiggly(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
 
 pub fn wip(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
     let rms = features.root_mean_squared.smoothed_val;
+    let hi = features.hi.smoothed_val;
     let x_pad = 4;
     let y_pad = 2;
     
@@ -99,11 +100,11 @@ pub fn wip(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
     );
 
     for i in x_pad..grid.width-x_pad{
-        let mut sin_out =   ((2.0*elapsed + 0.1*(i as f32)).sin()/2.0 + 0.5);
+        let mut sin_out = (((3.0)*elapsed + 0.1*(i as f32)).sin()/2.0 + 0.5);
         sin_out = sin_out*0.7 + 0.3;
-        sin_out *= rms*rms; 
-        sin_out = 0.8*((grid.height - 2*y_pad) as f32) * sin_out;
-        let sin_height = sin_out as usize;
+        sin_out *= rms*hi; 
+        sin_out = 1.5 * ((grid.height - 2*y_pad) as f32) * sin_out;
+        let sin_height = (sin_out as usize).min(grid.height);
         grid.draw_line_vertical(
             '.',
             COLOR_BG_ALT, 
@@ -112,11 +113,39 @@ pub fn wip(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
             sin_height
         );
     }
+}
 
+pub fn eq_mountains(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
+    let rms = features.root_mean_squared.smoothed_val;
+
+    // scaling lo/mi/hi so they don't overlap
+    let lo = features.lo.smoothed_val * 1.2 * rms;
+    let mi = features.mi.smoothed_val * 0.5 * rms;
+    let hi = features.hi.smoothed_val * 1.0 * rms;
+
+    fn char_height(num: f32, max_height: usize) -> usize {
+        ((num * (max_height as f32)) as usize).min(max_height)
+    }
+
+    for i in 0..grid.width-1 {
+        for j in 0..grid.height {
+            grid.set_cell(grid.get_cell(i+1,j).c, grid.get_cell(i+1,j).color, i, j);
+        } 
+    }
+    grid.draw_line_vertical(' ', COLOR_BG, grid.width-1, 0, grid.height);
+    grid.draw_line('/', COLOR_3, grid.width-1, grid.height-1, 0, -1, char_height(hi, grid.height));
+    grid.draw_line('\\', COLOR_2, grid.width-1, grid.height-1, 0, -1, char_height(mi, grid.height));
+    grid.draw_line('/', COLOR_1, grid.width-1, grid.height-1, 0, -1, char_height(lo, grid.height));
+
+    for j in 0..grid.height{
+        if grid.get_cell(grid.width-1, j).c == ' ' && j%3==0{
+            grid.set_cell('.', COLOR_BG_ALT, grid.width-1, j);
+        }
+    }
 }
 
 pub fn spectrum(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
-    grid.fill('=', COLOR_BG_ALT);
+    grid.fill('.', COLOR_BG_ALT);
 
     // convert FFT bins to log-scaled frequency to magnitude map
     let freq_spectrum: Vec<(f32,f32)> = 
@@ -152,7 +181,7 @@ pub fn spectrum(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid)
     let mut last_nonzero_l = 0.0;
     let mut last_nonzero_r = 0.0;
     for i in 0..grid.width{
-        if heights[i] > 0.1 {
+        if heights[i] > cutoff {
             last_nonzero_l = heights[i];
         } else {
             heights[i] = last_nonzero_l;
@@ -163,7 +192,7 @@ pub fn spectrum(features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid)
     }
     for i in 0..grid.width {
         let rev_i = grid.width - i - 1;
-        if heights[rev_i] > 0.1 {
+        if heights[rev_i] > cutoff {
             last_nonzero_r = heights[rev_i];
         } else {
             heights[rev_i] = last_nonzero_r;

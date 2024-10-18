@@ -51,10 +51,11 @@ fn main() -> Result<(), anyhow::Error> {
     let start = Instant::now();
 
     let animators: Vec<fn(&AudioFeatures,f32,&mut TerminalGrid)> = vec![
-        animators::sine_like,
-        animators::spectrum,
-        animators::wip,
-        animators::wiggly,
+        //animators::sine_like,
+        //animators::spectrum,
+        //animators::wiggly,
+        animators::eq_mountains,
+        //animators::wip,
     ];   
 
     loop {
@@ -67,7 +68,7 @@ fn main() -> Result<(), anyhow::Error> {
         }
 
         let elapsed = start.elapsed().as_secs_f32();
-        let animator_idx = ((elapsed as i32)/4) % (animators.len() as i32);  
+        let animator_idx = ((elapsed as i32)/10) % (animators.len() as i32);  
         let animator_idx = animator_idx as usize;
 
         animators[animator_idx](&audio_features, elapsed, &mut grid);
