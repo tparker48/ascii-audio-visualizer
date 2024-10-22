@@ -1,7 +1,6 @@
 use animators::Animators;
 use anyhow;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-
 use std::sync::{Arc, Mutex};
 use std::{thread, time};
 use std::time::Instant;
@@ -39,9 +38,27 @@ fn main() -> Result<(), anyhow::Error> {
         .default_output_config()
         .expect("Failed to get default input config");
     let stream = match config.sample_format() {
+        cpal::SampleFormat::I8 => device.build_input_stream(
+            &config.into(),
+            move |audio_buffer, _: &_| audio_callback::<[i8]>(audio_buffer, &process_buffer_writer),
+            move |err| err_callback(err),
+            None,
+        )?,
+        cpal::SampleFormat::I16 => device.build_input_stream(
+            &config.into(),
+            move |audio_buffer, _: &_| audio_callback::<[i16]>(audio_buffer, &process_buffer_writer),
+            move |err| err_callback(err),
+            None,
+        )?,
+        cpal::SampleFormat::I32 => device.build_input_stream(
+            &config.into(),
+            move |audio_buffer, _: &_| audio_callback::<[i32]>(audio_buffer, &process_buffer_writer),
+            move |err| err_callback(err),
+            None,
+        )?,
         cpal::SampleFormat::F32 => device.build_input_stream(
             &config.into(),
-            move |audio_buffer, _: &_| audio_callback(audio_buffer, &process_buffer_writer),
+            move |audio_buffer, _: &_| audio_callback::<[f32]>(audio_buffer, &process_buffer_writer),
             move |err| err_callback(err),
             None,
         )?,

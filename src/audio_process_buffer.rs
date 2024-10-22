@@ -139,7 +139,7 @@ impl AudioProcessBuffer {
         // Cut off mirrored frequencies
         fft_buffer = fft_buffer[0..((fft_buffer.len())/2)].to_vec();
 
-        // Convert to magnitudes
+        // as_f32_samples to magnitudes
         let magnitudes: Vec<f32> = fft_buffer
                                     .iter()
                                     .map(|complex|complex.norm())
@@ -247,10 +247,47 @@ impl SmoothedValue {
     }
 }
 
+pub trait AsF32Audio {
+    fn as_f32_samples(&self) -> Vec<f32>;
+}
+impl AsF32Audio for [i8] {
+    fn as_f32_samples(&self) -> Vec<f32> {
+        self
+         .iter()
+         .map(|i|(*i as f32) / (256.0))
+         .collect()
+    }
+}
+impl AsF32Audio for [i16] {
+    fn as_f32_samples(&self) -> Vec<f32> {
+        self
+          .iter()
+          .map(|i|(*i as f32) / (i16::MAX as f32))
+          .collect()
+    }
+}
+impl AsF32Audio for [i32] {
+    fn as_f32_samples(&self) -> Vec<f32> {
+        self
+          .iter()
+          .map(|i|(*i as f32) / (i32::MAX as f32))
+          .collect()
+    }
+}
+impl AsF32Audio for [f32] {
+    fn as_f32_samples(&self) -> Vec<f32> {
+        self
+          .iter()
+          .map(|f|*f)
+          .collect()
+    }
+}
 
 // Callback for audio thread
-pub fn audio_callback(input_buffer: &[f32], processing_buffer: &Arc<Mutex<AudioProcessBuffer>>)
+pub fn audio_callback<T: AsF32Audio + ?Sized>(input_buffer: &T, processing_buffer: &Arc<Mutex<AudioProcessBuffer>>)
 {
+    // as_f32_samples audio format to f32
+   let input_buffer = (*input_buffer).as_f32_samples(); 
     // write to process buffer in mono
     match processing_buffer.try_lock() {
         Ok(mut buffer) => {
@@ -267,3 +304,4 @@ pub fn audio_callback(input_buffer: &[f32], processing_buffer: &Arc<Mutex<AudioP
 pub fn err_callback(err: StreamError) {
     eprintln!("an error occurred on stream: {}", err);
 }
+
