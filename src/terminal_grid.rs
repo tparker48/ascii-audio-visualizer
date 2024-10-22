@@ -5,25 +5,15 @@ use crossterm::style::Print;
 use crossterm::cursor::{MoveTo, Hide};
 use crossterm::terminal::{BeginSynchronizedUpdate, EndSynchronizedUpdate};
 
-use crate::colors::{BLOCK_CHAR, COLOR_BG};
-
-use crate::colors::Color;
-
-
-pub fn init_terminal() {
-    execute!(
-        io::stdout(),
-        Hide
-    ).unwrap();
-    print!("\x1B[2J");
-}
+use crate::colors::{Color, BLOCK_CHAR};
 
 pub struct TerminalGrid {
     grid: Vec<ColoredChar>, 
     last_grid: Vec<ColoredChar>,
     pub width: usize,
     pub height: usize,
-    pub grid_size: usize
+    pub grid_size: usize,
+    bg_color: Color
 }
 
 impl TerminalGrid {
@@ -37,7 +27,8 @@ impl TerminalGrid {
             last_grid : vec![ ColoredChar{c:BLOCK_CHAR, color:(255,255,255),} ; grid_size],
             width: w,
             height: h,
-            grid_size: grid_size
+            grid_size: grid_size,
+            bg_color: bg_color
         }
     }
 
@@ -61,7 +52,7 @@ impl TerminalGrid {
         let start_idx = self.index_2d(0, j);
         self.grid[start_idx..start_idx+self.width]
             .iter()
-            .map(|cc| cc.to_string(COLOR_BG))
+            .map(|cc| cc.to_string(self.bg_color))
             .collect()
     }
 
@@ -69,7 +60,7 @@ impl TerminalGrid {
         let mut result = String::from("");
         for (i,line) in self.grid.chunks(self.width).enumerate(){
             let joined_line: String = line.iter()
-                                           .map( |colored_char| colored_char.to_string(COLOR_BG) )
+                                           .map( |colored_char| colored_char.to_string(self.bg_color) )
                                            .collect();
             result.push_str(&joined_line);
 
@@ -107,7 +98,7 @@ impl TerminalGrid {
     }
 
     pub fn reset(self: &mut TerminalGrid) {
-        self.fill(' ', COLOR_BG);
+        self.fill(' ', self.bg_color);
     }
 
     pub fn fill(self: &mut TerminalGrid, c: char, color: Color) {
@@ -126,8 +117,8 @@ impl TerminalGrid {
             self.width = w;
             self.height = h;
             self.grid_size = w*h;
-            self.grid.resize(self.grid_size, ColoredChar{c:' ', color: COLOR_BG});
-            self.last_grid.resize(self.grid_size, ColoredChar{c: '.', color: COLOR_BG});
+            self.grid.resize(self.grid_size, ColoredChar{c:' ', color: self.bg_color});
+            self.last_grid.resize(self.grid_size, ColoredChar{c: '.', color: self.bg_color});
         }
         
         // Detect diffs and copy into "last_grid"
@@ -155,19 +146,18 @@ impl TerminalGrid {
     }
 }
 
+
 #[derive(Copy, Clone)]
 pub struct ColoredChar {
     pub c: char,
     pub color: (u8,u8,u8)
 }
 
-pub type CC = ColoredChar;
-
 impl ColoredChar {
     pub fn new(character: char, color: Color) -> ColoredChar {
         ColoredChar{c:character, color:color}
     }
-    fn to_string(self: &ColoredChar, bg_color: Color) -> String {
+    pub fn to_string(self: &ColoredChar, bg_color: Color) -> String {
         let color = RGB(self.color.0, self.color.1, self.color.2);
         let bg_color = RGB(bg_color.0, bg_color.1, bg_color.2);
         color.on(bg_color).paint(self.c.to_string()).to_string()
