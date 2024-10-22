@@ -1,4 +1,4 @@
-use std::{ffi::FromBytesUntilNulError, sync::{Arc, Mutex}};
+use std::sync::{Arc, Mutex};
 use rustfft::{num_complex::Complex, FftPlanner};
 use cpal::StreamError;
 
@@ -79,7 +79,7 @@ impl AudioProcessBuffer {
 
     fn compute_eq(&mut self, fft: Vec<f32>) {
         let lo_cutoff = 130.0;
-        let mid_cutoff = 2_000.0;
+        let mid_cutoff = 1_200.0;
 
         let mut lo = 0.0;
         let mut mi = 0.0;

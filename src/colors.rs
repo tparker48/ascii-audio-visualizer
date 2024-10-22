@@ -1,3 +1,5 @@
+use hex::decode;
+
 pub type Color = (u8,u8,u8);
 
 pub const COLOR_1: Color = (230,180,100);
@@ -18,4 +20,23 @@ pub fn color_linterp(c0: Color, c1: Color, mix: f32) -> Color {
     let g = (m1*c0.1 + m2*c1.1) as u8;
     let b = (m1*c0.2 + m2*c1.2) as u8;
     return (r,g,b);
+}
+
+pub trait FromHex: Sized {
+    fn from_hex_string(hex_str: String) -> Result<Self, String>;
+}
+
+impl FromHex for Color {
+    fn from_hex_string(hex_str: String) -> Result<Color, String> {
+        if !hex_str.starts_with("0x") {
+            return Err("Invalid Hex String: Did not start with 0x.".to_string());
+        }
+        let hex_str = hex_str[2..hex_str.len()].to_string();
+        
+        if hex_str.len() != 6 {
+            return Err("Invalid Hex String: Invalid length".to_string());
+        }
+        let hex_value: Vec<u8> = decode(hex_str).expect("Invalid Hex");
+        return Ok((hex_value[0],hex_value[1],hex_value[2]));
+    }
 }

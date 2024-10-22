@@ -6,6 +6,8 @@ edition = "2021"
 [dependencies]
 ansi_term = "0.12.1"
 anyhow = "1.0.89"
+configparser = "3.1.0"
 cpal = "0.15.3"
 crossterm = "0.28.1"
+hex = "0.4.3"
 rustfft = "6.2.0"
