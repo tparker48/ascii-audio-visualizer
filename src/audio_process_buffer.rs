@@ -2,6 +2,8 @@ use std::sync::{Arc, Mutex};
 use rustfft::{num_complex::Complex, FftPlanner};
 use cpal::StreamError;
 
+use crate::audio_formats::AsF32Audio;
+
 const BUFFER_SIZE: usize = 1024; 
 const FFT_SIZE: usize = 1024;
 const SMOOTHING_SIZE: usize = 10;
@@ -244,42 +246,6 @@ impl SmoothedValue {
         // Don't let adaptive min/max decay too much
         self.adaptive_max = self.adaptive_max.max(self.max*0.01);
         self.adaptive_min = self.adaptive_min.min(self.min*1.99);
-    }
-}
-
-pub trait AsF32Audio {
-    fn as_f32_samples(&self) -> Vec<f32>;
-}
-impl AsF32Audio for [i8] {
-    fn as_f32_samples(&self) -> Vec<f32> {
-        self
-         .iter()
-         .map(|i|(*i as f32) / (256.0))
-         .collect()
-    }
-}
-impl AsF32Audio for [i16] {
-    fn as_f32_samples(&self) -> Vec<f32> {
-        self
-          .iter()
-          .map(|i|(*i as f32) / (i16::MAX as f32))
-          .collect()
-    }
-}
-impl AsF32Audio for [i32] {
-    fn as_f32_samples(&self) -> Vec<f32> {
-        self
-          .iter()
-          .map(|i|(*i as f32) / (i32::MAX as f32))
-          .collect()
-    }
-}
-impl AsF32Audio for [f32] {
-    fn as_f32_samples(&self) -> Vec<f32> {
-        self
-          .iter()
-          .map(|f|*f)
-          .collect()
     }
 }
 

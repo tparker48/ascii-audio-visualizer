@@ -11,6 +11,7 @@ use audio_process_buffer::{audio_callback, err_callback, AudioFeatures, AudioPro
 
 pub mod config;
 pub mod audio_process_buffer;
+pub mod audio_formats;
 pub mod terminal_grid;
 pub mod animators;
 pub mod colors;
