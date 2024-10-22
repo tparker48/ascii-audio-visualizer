@@ -179,4 +179,3 @@ impl PartialEq for ColoredChar {
         self.c == other.c && self.color == other.color
     }
 }
-

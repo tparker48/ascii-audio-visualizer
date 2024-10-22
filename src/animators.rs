@@ -1,15 +1,13 @@
-use std::collections::HashMap;
-
 use crate::audio_process_buffer::{bin_idx_to_freq, AudioFeatures};
 use crate::config::Config;
 use crate::terminal_grid::TerminalGrid;
 
 pub type AnimatorFunction = fn(&Config, &AudioFeatures, f32, &mut TerminalGrid);
 
-
 pub struct Animators {
     pub list: Vec<AnimatorFunction>
 }
+
 impl Animators {
     pub fn new(config: &Config) -> Animators {
         let animators: Vec<AnimatorFunction> = config.animations
@@ -19,7 +17,6 @@ impl Animators {
         return Animators { list: animators }
     }
 }
-
 
 fn match_animator(animator_name: &str) -> AnimatorFunction {
     match animator_name {
@@ -111,7 +108,7 @@ pub fn wiggly(config: &Config, features: &AudioFeatures, elapsed: f32, grid: &mu
     }
 }
 
-pub fn eq_mountains(config: &Config, features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
+pub fn eq_mountains(config: &Config, features: &AudioFeatures, _elapsed: f32, grid: &mut TerminalGrid) {
     let rms = features.root_mean_squared.smoothed_val;
 
     // scaling lo/mi/hi so they don't overlap
@@ -140,7 +137,7 @@ pub fn eq_mountains(config: &Config, features: &AudioFeatures, elapsed: f32, gri
     }
 }
 
-pub fn spectrum(config: &Config, features: &AudioFeatures, elapsed: f32, grid: &mut TerminalGrid) {
+pub fn spectrum(config: &Config, features: &AudioFeatures, _elapsed: f32, grid: &mut TerminalGrid) {
     grid.fill('.', config.bg_alt_color);
 
     // convert FFT bins to log-scaled frequency to magnitude map

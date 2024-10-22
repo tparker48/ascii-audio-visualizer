@@ -44,7 +44,7 @@ impl Config {
                                                     .map(|(key,val)| {
                                                         (key.clone(), val.clone().unwrap().parse::<i32>().unwrap())
                                                     })
-                                                    .filter(|(key,val)| *val > 0)
+                                                    .filter(|(_key,val)| *val > 0)
                                                     .collect();
         animators.sort_by(|a,b| a.1.partial_cmp(&b.1).unwrap());
         let animations: Vec<String> = animators

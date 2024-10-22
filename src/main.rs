@@ -1,15 +1,13 @@
-use animators::{AnimatorFunction, Animators};
+use animators::Animators;
 use anyhow;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 
-use core::num;
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::{thread, time};
 use std::time::Instant;
 
 use config::Config;
-use terminal_grid::{ TerminalGrid, init_terminal };
+use terminal_grid::TerminalGrid;
 use audio_process_buffer::{audio_callback, err_callback, AudioFeatures, AudioProcessBuffer};
 
 pub mod config;
@@ -58,6 +56,7 @@ fn main() -> Result<(), anyhow::Error> {
     let animation_duration = config_ini.animation_length as i32;
     let num_animators = animators.list.len() as i32;
     let start = Instant::now();
+    let mut elapsed: f32;
     loop {
         thread::sleep(time::Duration::from_secs_f32(0.015));
 
@@ -68,15 +67,10 @@ fn main() -> Result<(), anyhow::Error> {
             Err(_) => {continue;}
         }
 
-        let elapsed = start.elapsed().as_secs_f32();
+        elapsed = start.elapsed().as_secs_f32();
         let animator_idx = (elapsed as i32/animation_duration) % num_animators;  
         let animator_idx = animator_idx as usize;
         animators.list[animator_idx](&config_ini, &audio_features, elapsed, &mut grid);
         grid.display();
     }
-
-    stream.pause()?;
-    drop(stream);
-    Ok(())
-
 }

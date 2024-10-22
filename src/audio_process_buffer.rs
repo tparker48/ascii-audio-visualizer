@@ -109,22 +109,22 @@ impl AudioProcessBuffer {
         mi /= (mi_hits as f32).log2();
         lo /= (lo_hits as f32).log2();
 
-        self.features.lo.write(lo);//(lo_hits as f32));
-        self.features.mi.write(mi);//(mi_hits as f32));
-        self.features.hi.write(hi);//(hi_hits as f32));
+        self.features.lo.write(lo);
+        self.features.mi.write(mi);
+        self.features.hi.write(hi);
     }
 
-    fn compute_spectral_centroid(fft_buffer: &Vec<Complex<f32>>) -> f32 {
+    fn _compute_spectral_centroid(fft_buffer: &Vec<Complex<f32>>) -> f32 {
         // sum of f[i]*x[i], where f[i] and x[i] are central frequency and magnitudes of bin i
         let sum1: f32 = fft_buffer
                             .iter()
                             .enumerate()
-                            .map( |(bin_idx, c)| bin_idx_to_center_freq(bin_idx) * c.norm())
+                            .map(|(bin_idx, c)| bin_idx_to_center_freq(bin_idx) * c.norm())
                             .sum();
         // sum of x[i], where x[i] is magnitude of bin i
         let sum2: f32 = fft_buffer
                             .iter()
-                            .map( |c| c.norm() )
+                            .map(|c| c.norm())
                             .sum();
         return sum1/sum2;
     }
