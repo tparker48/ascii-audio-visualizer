@@ -1,5 +1,6 @@
 use std::io;
 use ansi_term::Color::RGB;
+use ansi_term::{ANSIByteString, ANSIByteStrings, ANSIGenericString, Style};
 use crossterm::execute;
 use crossterm::style::Print;
 use crossterm::cursor::{MoveTo, Hide};
@@ -110,6 +111,7 @@ impl TerminalGrid {
     }
 
     pub fn display(self: &mut TerminalGrid) {
+        // Resize char buffer if needed
         let (w,h) = crossterm::terminal::size().unwrap();
         let w = w as usize;
         let h = h as usize;
@@ -118,30 +120,65 @@ impl TerminalGrid {
             self.height = h;
             self.grid_size = w*h;
             self.grid.resize(self.grid_size, ColoredChar{c:' ', color: self.bg_color});
-            self.last_grid.resize(self.grid_size, ColoredChar{c: '.', color: self.bg_color});
+            self.last_grid = vec![ColoredChar{c:'\n', color: (0,0,0)}; self.grid.len()];
         }
         
-        // Detect diffs and copy into "last_grid"
-        let mut change = false;
-        for i in 0..self.grid_size{
-            if self.grid[i] != self.last_grid[i] {
-                self.last_grid[i] = self.grid[i];
-                change = true;
+        // Detect diffs
+        let mut diffs: Vec<(usize,usize,ColoredChar)> = vec![];
+        for i in 0..self.width{
+            for j in 0..self.height {
+                let idx = self.index_2d(i, j);
+                if self.grid[idx] != self.last_grid[idx] {
+                    self.last_grid[idx] = self.grid[idx];
+                    diffs.push((i,j, self.grid[idx]));
+                }
             }
         }
         
-        // Be lazy if no changes
-        if !change {
-            return;
-        }
-        execute!(
-            io::stdout(),
-            BeginSynchronizedUpdate,
-            MoveTo(0, 0),
-            Print(self.get_lines()),
-            Hide,
-            EndSynchronizedUpdate
-        ).unwrap();
+        // Render diffs
+        let temp_style = Style::new();
+        let BSU = "\x1B[?2026".as_bytes().to_owned();
+        let ESU = "\x1B[?2026l".as_bytes().to_owned();
+        let HIDE = "\x1b[?25l".as_bytes().to_owned();
+        
+        let draw_commands = diffs
+            .iter()
+            .flat_map(|(x,y,cc)|{
+                std::iter::once(
+                    temp_style.paint(
+                        format!("\x1B[{};{}H", y+1, x+1)
+                            .as_bytes()
+                            .to_owned(),
+                    ),
+                )
+                .chain(std::iter::once(cc.to_ansi(self.bg_color)))
+                //.chain(std::iter::once(temp_style.paint(HIDE.clone())))
+            });
+        
+        let supports_synchronized_output = true;
+        let draw: Vec<ANSIGenericString<[u8]>> = if supports_synchronized_output {
+            std::iter::once(temp_style.paint(BSU))
+                .chain(draw_commands)
+                .chain(std::iter::once(temp_style.paint(ESU)))
+                .chain(std::iter::once(temp_style.paint(HIDE)))
+                .collect()
+        } else {
+            draw_commands.collect()
+        };
+
+
+        ANSIByteStrings(&draw)
+            .write_to(&mut std::io::stdout())
+            .unwrap();
+
+        //execute!(
+        //    io::stdout(),
+        //    BeginSynchronizedUpdate,
+        //    MoveTo(0, 0),
+        //    Print(self.get_lines()),
+        //    Hide,
+        //    EndSynchronizedUpdate
+        //).unwrap();
 
     }
 }
@@ -161,6 +198,11 @@ impl ColoredChar {
         let color = RGB(self.color.0, self.color.1, self.color.2);
         let bg_color = RGB(bg_color.0, bg_color.1, bg_color.2);
         color.on(bg_color).paint(self.c.to_string()).to_string()
+    }
+    pub fn to_ansi(self: &ColoredChar, bg_color: Color) -> ANSIGenericString<'_, [u8]> {
+        let color = RGB(self.color.0, self.color.1, self.color.2);
+        let bg_color = RGB(bg_color.0, bg_color.1, bg_color.2);
+        color.on(bg_color).paint(self.c.to_string().as_bytes().to_owned())
     }
 }
 

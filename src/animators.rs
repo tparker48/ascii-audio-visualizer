@@ -112,8 +112,8 @@ pub fn eq_mountains(config: &Config, features: &AudioFeatures, _elapsed: f32, gr
     let rms = features.root_mean_squared.smoothed_val;
 
     // scaling lo/mi/hi so they don't overlap
-    let lo = features.lo.smoothed_val * 0.9 * rms;
-    let mi = features.mi.smoothed_val * 0.3 * rms;
+    let lo = features.lo.smoothed_val * 0.5 * rms;
+    let mi = features.mi.smoothed_val * 0.5 * rms;
     let hi = features.hi.smoothed_val * 2.0 * rms;
 
     fn char_height(num: f32, max_height: usize) -> usize {
