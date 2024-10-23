@@ -16,6 +16,7 @@ pub mod terminal_grid;
 pub mod animators;
 pub mod colors;
 
+
 fn main() -> Result<(), anyhow::Error> {
     let config_ini = Config::new("config.ini");
     let animators: Animators = Animators::new(&config_ini);                        

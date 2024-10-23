@@ -1,12 +1,11 @@
-use std::io;
 use ansi_term::Color::RGB;
-use ansi_term::{ANSIByteString, ANSIByteStrings, ANSIGenericString, Style};
-use crossterm::execute;
-use crossterm::style::Print;
-use crossterm::cursor::{MoveTo, Hide};
-use crossterm::terminal::{BeginSynchronizedUpdate, EndSynchronizedUpdate};
+use ansi_term::{ANSIByteStrings, ANSIGenericString, Style};
 
 use crate::colors::{Color, BLOCK_CHAR};
+
+const BSU:  &[u8] = "\x1B[?2026".as_bytes();
+const ESU:  &[u8] = "\x1B[?2026l".as_bytes();
+const HIDE: &[u8] = "\x1b[?25l".as_bytes();
 
 pub struct TerminalGrid {
     grid: Vec<ColoredChar>, 
@@ -137,9 +136,6 @@ impl TerminalGrid {
         
         // Render diffs
         let temp_style = Style::new();
-        let BSU = "\x1B[?2026".as_bytes().to_owned();
-        let ESU = "\x1B[?2026l".as_bytes().to_owned();
-        let HIDE = "\x1b[?25l".as_bytes().to_owned();
         
         let draw_commands = diffs
             .iter()
@@ -152,9 +148,9 @@ impl TerminalGrid {
                     ),
                 )
                 .chain(std::iter::once(cc.to_ansi(self.bg_color)))
-                //.chain(std::iter::once(temp_style.paint(HIDE.clone())))
             });
         
+        // TODO determine if sync output is supported at runtime
         let supports_synchronized_output = true;
         let draw: Vec<ANSIGenericString<[u8]>> = if supports_synchronized_output {
             std::iter::once(temp_style.paint(BSU))
@@ -163,7 +159,9 @@ impl TerminalGrid {
                 .chain(std::iter::once(temp_style.paint(HIDE)))
                 .collect()
         } else {
-            draw_commands.collect()
+            draw_commands
+                .chain(std::iter::once(temp_style.paint(HIDE)))
+                .collect()
         };
 
 
