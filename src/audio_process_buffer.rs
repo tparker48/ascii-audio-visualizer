@@ -1,8 +1,6 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use rustfft::{num_complex::Complex, FftPlanner};
-use cpal::StreamError;
 
-use crate::audio_formats::AsF32Audio;
 
 const BUFFER_SIZE: usize = 1024; 
 const FFT_SIZE: usize = 1024;
@@ -248,26 +246,3 @@ impl SmoothedValue {
         self.adaptive_min = self.adaptive_min.min(self.min*1.99);
     }
 }
-
-// Callback for audio thread
-pub fn audio_callback<T: AsF32Audio + ?Sized>(input_buffer: &T, processing_buffer: &Arc<Mutex<AudioProcessBuffer>>)
-{
-    // as_f32_samples audio format to f32
-   let input_buffer = (*input_buffer).as_f32_samples(); 
-    // write to process buffer in mono
-    match processing_buffer.try_lock() {
-        Ok(mut buffer) => {
-            for i in 0..input_buffer.len() {
-                if i%2 == 1 {
-                    buffer.push((input_buffer[i] + input_buffer[i-1]) / 2.0);
-                }
-            }
-        },
-        Err(_) => {}
-    }
-}
-
-pub fn err_callback(err: StreamError) {
-    eprintln!("an error occurred on stream: {}", err);
-}
-

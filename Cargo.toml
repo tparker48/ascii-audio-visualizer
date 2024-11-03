@@ -11,3 +11,5 @@ cpal = "0.15.3"
 crossterm = "0.28.1"
 hex = "0.4.3"
 rustfft = "6.2.0"
+pulse = { version = "2.0", package = "libpulse-binding" }
+psimple = { version = "2.0", package = "libpulse-simple-binding" }

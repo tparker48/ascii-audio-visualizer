@@ -47,7 +47,7 @@ pub fn sine_like(config: &Config, features: &AudioFeatures, _elapsed: f32, grid:
     // draw waves
     for x in 0..grid.width{
         let mut x_position = (x as f32) / (grid.width as f32) ;
-        x_position *= (zcr+0.01) * 288.0 * (grid.height as f32);
+        x_position *= (zcr+0.01) * 188.0 * (grid.height as f32);
         x_position = (x_position * 0.03) + 0.8;
         
         // sin output is rescaled from [-1,1] to [0,1]

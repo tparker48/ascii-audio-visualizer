@@ -1,21 +1,18 @@
 use animators::Animators;
-use anyhow;
-use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use std::sync::{Arc, Mutex};
 use std::{thread, time};
 use std::time::Instant;
 
 use config::Config;
 use terminal_grid::TerminalGrid;
-use audio_process_buffer::{audio_callback, err_callback, AudioFeatures, AudioProcessBuffer};
+use audio_process_buffer::AudioFeatures;
 
 pub mod config;
+pub mod input;
 pub mod audio_process_buffer;
 pub mod audio_formats;
 pub mod terminal_grid;
 pub mod animators;
 pub mod colors;
-
 
 fn main() -> Result<(), anyhow::Error> {
     let config_ini = Config::new("config.ini");
@@ -28,50 +25,12 @@ fn main() -> Result<(), anyhow::Error> {
     }
 
     // Initialize multithreaded access to a shared audio process buffer
-    let process_buffer_writer = Arc::new(Mutex::new(AudioProcessBuffer::new()));
-    let process_buffer_reader = process_buffer_writer.clone();
 
-    // Audio Initialization 
-    let host = cpal::default_host();
-    let device = host
-        .default_output_device()
-        .expect("failed to find input device");
-    let config = device
-        .default_output_config()
-        .expect("Failed to get default input config");
-    let stream = match config.sample_format() {
-        cpal::SampleFormat::I8 => device.build_input_stream(
-            &config.into(),
-            move |audio_buffer, _: &_| audio_callback::<[i8]>(audio_buffer, &process_buffer_writer),
-            move |err| err_callback(err),
-            None,
-        )?,
-        cpal::SampleFormat::I16 => device.build_input_stream(
-            &config.into(),
-            move |audio_buffer, _: &_| audio_callback::<[i16]>(audio_buffer, &process_buffer_writer),
-            move |err| err_callback(err),
-            None,
-        )?,
-        cpal::SampleFormat::I32 => device.build_input_stream(
-            &config.into(),
-            move |audio_buffer, _: &_| audio_callback::<[i32]>(audio_buffer, &process_buffer_writer),
-            move |err| err_callback(err),
-            None,
-        )?,
-        cpal::SampleFormat::F32 => device.build_input_stream(
-            &config.into(),
-            move |audio_buffer, _: &_| audio_callback::<[f32]>(audio_buffer, &process_buffer_writer),
-            move |err| err_callback(err),
-            None,
-        )?,
-        sample_format => {
-            return Err(anyhow::Error::msg(format!(
-                "Unsupported sample format '{sample_format}'"
-            )))
-        }
-    };
-    stream.play()?;
-
+    // TODO: Check OS / audio host support
+    //let process_buffer_reader = input::wasapi::connect()
+    let process_buffer_reader = input::pulse::connect()
+        .expect("Failed to connect audio listener");
+    
     let animation_duration = config_ini.animation_length as i32;
     let num_animators = animators.list.len() as i32;
     let start = Instant::now();

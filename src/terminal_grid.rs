@@ -1,5 +1,11 @@
+use std::io;
+
 use ansi_term::Color::RGB;
 use ansi_term::{ANSIByteStrings, ANSIGenericString, Style};
+use crossterm::cursor::{Hide, MoveTo};
+use crossterm::execute;
+use crossterm::style::Print;
+use crossterm::terminal::{BeginSynchronizedUpdate, EndSynchronizedUpdate};
 
 use crate::colors::{Color, BLOCK_CHAR};
 
@@ -149,14 +155,16 @@ impl TerminalGrid {
                 )
                 .chain(std::iter::once(cc.to_ansi(self.bg_color)))
             });
-        
+
+            
+        /* 
         // TODO determine if sync output is supported at runtime
         let supports_synchronized_output = true;
         let draw: Vec<ANSIGenericString<[u8]>> = if supports_synchronized_output {
             std::iter::once(temp_style.paint(BSU))
                 .chain(draw_commands)
-                .chain(std::iter::once(temp_style.paint(ESU)))
                 .chain(std::iter::once(temp_style.paint(HIDE)))
+                .chain(std::iter::once(temp_style.paint(ESU)))
                 .collect()
         } else {
             draw_commands
@@ -168,15 +176,18 @@ impl TerminalGrid {
         ANSIByteStrings(&draw)
             .write_to(&mut std::io::stdout())
             .unwrap();
+        
+        */
 
-        //execute!(
-        //    io::stdout(),
-        //    BeginSynchronizedUpdate,
-        //    MoveTo(0, 0),
-        //    Print(self.get_lines()),
-        //    Hide,
-        //    EndSynchronizedUpdate
-        //).unwrap();
+
+        execute!(
+            io::stdout(),
+            BeginSynchronizedUpdate,
+            MoveTo(0, 0),
+            Print(self.get_lines()),
+            Hide,
+            EndSynchronizedUpdate
+        ).unwrap();
 
     }
 }
