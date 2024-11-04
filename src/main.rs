@@ -26,11 +26,27 @@ fn main() -> Result<(), anyhow::Error> {
 
     // Initialize multithreaded access to a shared audio process buffer
 
-    // TODO: Check OS / audio host support
-    //let process_buffer_reader = input::wasapi::connect()
+    // Listen to audio via pulseaudio API on linux.
+    #[cfg(all(
+        any(
+            target_os = "linux",
+            target_os = "dragonfly",
+            target_os = "freebsd",
+            target_os = "netbsd"
+        )
+    ))]
     let process_buffer_reader = input::pulse::connect()
         .expect("Failed to connect audio listener");
     
+    // Listen to audio via CPAL crate on windows.
+    #[cfg(all(
+        any(
+            target_os = "windows",
+        )
+    ))]
+    let (process_buffer_reader, _stream) = input::wasapi::connect()
+        .expect("Failed to connect audio listener");
+
     let animation_duration = config_ini.animation_length as i32;
     let num_animators = animators.list.len() as i32;
     let start = Instant::now();

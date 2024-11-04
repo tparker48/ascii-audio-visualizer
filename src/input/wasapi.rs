@@ -1,4 +1,4 @@
-use cpal::{traits::{DeviceTrait, HostTrait, StreamTrait}, StreamError};
+use cpal::{traits::{DeviceTrait, HostTrait, StreamTrait}, Stream, StreamError};
 use std::sync::{Arc, Mutex};
 
 use crate::audio_process_buffer::AudioProcessBuffer;
@@ -40,7 +40,7 @@ impl AsF32Audio for [f32] {
     }
 }
 
-pub fn connect() -> Result<Arc<Mutex<AudioProcessBuffer>>, anyhow::Error>  {
+pub fn connect() -> Result<(Arc<Mutex<AudioProcessBuffer>>, Stream), anyhow::Error>  {
     let process_buffer_writer = Arc::new(Mutex::new(AudioProcessBuffer::new()));
     let process_buffer_reader = process_buffer_writer.clone();
 
@@ -50,7 +50,7 @@ pub fn connect() -> Result<Arc<Mutex<AudioProcessBuffer>>, anyhow::Error>  {
         .default_output_device()
         .expect("Failed to get default output device");
     let config = device
-        .default_input_config()
+        .default_output_config()
         .expect("Failed to get default input config");
 
     let stream = match config.sample_format() {
@@ -86,7 +86,7 @@ pub fn connect() -> Result<Arc<Mutex<AudioProcessBuffer>>, anyhow::Error>  {
     };
     
     stream.play()?;
-    return Ok(process_buffer_reader);
+    return Ok((process_buffer_reader, stream));
 }
 
 

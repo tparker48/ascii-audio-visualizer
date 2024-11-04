@@ -3,6 +3,12 @@ name = "ascii_audio_visualizer"
 version = "0.1.0"
 edition = "2021"
 
+# linux dependencies
+[target.'cfg(unix)'.dependencies]
+pulse = { version = "2.0", package = "libpulse-binding" }
+psimple = { version = "2.0", package = "libpulse-simple-binding" }
+
+# general dependencies
 [dependencies]
 ansi_term = "0.12.1"
 anyhow = "1.0.89"
@@ -11,5 +17,3 @@ cpal = "0.15.3"
 crossterm = "0.28.1"
 hex = "0.4.3"
 rustfft = "6.2.0"
-pulse = { version = "2.0", package = "libpulse-binding" }
-psimple = { version = "2.0", package = "libpulse-simple-binding" }
