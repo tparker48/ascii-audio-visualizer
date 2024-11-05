@@ -37,7 +37,8 @@ fn main() -> Result<(), anyhow::Error> {
     ))]
     let process_buffer_reader = input::pulse::connect()
         .expect("Failed to connect audio listener");
-    
+    //return Ok(()); 
+
     // Listen to audio via CPAL crate on windows.
     #[cfg(all(
         any(

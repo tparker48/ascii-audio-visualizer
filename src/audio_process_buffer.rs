@@ -4,7 +4,7 @@ use rustfft::{num_complex::Complex, FftPlanner};
 
 const BUFFER_SIZE: usize = 1024; 
 const FFT_SIZE: usize = 1024;
-const SMOOTHING_SIZE: usize = 10;
+const SMOOTHING_SIZE: usize = 7;
 const FS: usize = 48000;
 const FFT_BIN_WIDTH: f32 = (FS as f32) / (FFT_SIZE as f32);
 
