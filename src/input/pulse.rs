@@ -1,4 +1,3 @@
-
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::ops::Deref;
@@ -12,8 +11,8 @@ use pulse::context::{Context, FlagSet as ContextFlagSet};
 use std::rc::Rc;
 use std::cell::RefCell;
 
-
 use crate::audio_process_buffer::AudioProcessBuffer;
+use crate::audio_formats::AsF32Audio;
 
 const BUFFER_SIZE: usize = 1024;
 
@@ -27,7 +26,6 @@ pub fn connect() -> Result<Arc<Mutex<AudioProcessBuffer>>, anyhow::Error> {
 
     return Ok(process_buffer_reader);
 }
-
 
 fn audio_listener(shared_buffer: Arc<Mutex<AudioProcessBuffer>>) {
     let spec = Spec {
@@ -53,7 +51,7 @@ fn audio_listener(shared_buffer: Arc<Mutex<AudioProcessBuffer>>) {
         None,                // Use the default server
         "Audio Listener",            // Our application’s name
         Direction::Record, // We want a playback stream
-        Some(default_sink_monitor.as_str()),             // TODO get default sink and append ".monitor"
+        Some(default_sink_monitor.as_str()),
         "listener",             // Description of our stream
         &spec,               // Our sample format
         None,                // Use default channel map
@@ -64,31 +62,18 @@ fn audio_listener(shared_buffer: Arc<Mutex<AudioProcessBuffer>>) {
     let mut raw_buffer = [0 as u8; BUFFER_SIZE*4];
     loop{
         // capture raw bytes
-        s.read(&mut raw_buffer).unwrap();
+        s.read(&mut raw_buffer).expect("Error reading from audio stream");
 
         // convert to f32 format
         match shared_buffer.try_lock() {
             Ok(mut buffer) => {
-                for sample in audio_samples_from_raw_bytes(&raw_buffer){
+                for sample in raw_buffer.as_f32_samples(){
                     buffer.push(sample);
                 }
             },
             Err(_) => {continue;}
         }
     }
-}
-
-fn audio_samples_from_raw_bytes(raw_bytes: &[u8;BUFFER_SIZE*4]) -> Vec<f32> {
-    /* Converts an array of raw bytes into a vector of f32 samples
-     */
-    raw_bytes
-        .chunks(4)
-        .map(|bytes: &[u8]| {
-            f32::from_ne_bytes(
-                [bytes[0], bytes[1], bytes[2], bytes[3]]
-            )
-        })
-        .collect()
 }
 
 fn get_default_sink_name() -> String {
@@ -126,11 +111,11 @@ fn get_default_sink_name() -> String {
     let name_read_ptr = name_write_ptr.clone();
 
     let operation = context.borrow().introspect().get_server_info(move |info|{
-        let mut name_ref = name_write_ptr.lock().unwrap();
+        let mut name_ref = name_write_ptr.lock().expect("Error acquiring mutex lock");
         *name_ref = String::from(
             info.default_sink_name
                 .as_ref()
-                .unwrap()
+                .expect("Error parsing default sink name")
                 .deref()
         );
             
@@ -142,6 +127,6 @@ fn get_default_sink_name() -> String {
     // Clean shutdown
     mainloop.borrow_mut().quit(Retval(0)); 
     
-    let name_ref = name_read_ptr.lock().unwrap();
+    let name_ref = name_read_ptr.lock().expect("Error acquiring mutex lock");
     return name_ref.clone();
 }

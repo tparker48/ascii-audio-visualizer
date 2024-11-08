@@ -1,16 +1,16 @@
 use std::sync::Arc;
 use rustfft::{num_complex::Complex, FftPlanner};
 
-
 const BUFFER_SIZE: usize = 1024; 
 const FFT_SIZE: usize = 1024;
-const SMOOTHING_SIZE: usize = 7;
+const SMOOTHING_SIZE: usize = 12;
 const FS: usize = 48000;
 const FFT_BIN_WIDTH: f32 = (FS as f32) / (FFT_SIZE as f32);
 
 pub fn bin_idx_to_center_freq(bin_idx: usize) -> f32 {
     return ((bin_idx as f32) * FFT_BIN_WIDTH) + 0.5*FFT_BIN_WIDTH;
 }
+
 pub fn bin_idx_to_freq(bin_idx: usize) -> f32 {
     return (bin_idx as f32) * FFT_BIN_WIDTH;
 }

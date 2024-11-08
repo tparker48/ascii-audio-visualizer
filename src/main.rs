@@ -24,8 +24,6 @@ fn main() -> Result<(), anyhow::Error> {
         return Err(anyhow::Error::msg("Error: no active animations."));
     }
 
-    // Initialize multithreaded access to a shared audio process buffer
-
     // Listen to audio via pulseaudio API on linux.
     #[cfg(all(
         any(
@@ -37,7 +35,6 @@ fn main() -> Result<(), anyhow::Error> {
     ))]
     let process_buffer_reader = input::pulse::connect()
         .expect("Failed to connect audio listener");
-    //return Ok(()); 
 
     // Listen to audio via CPAL crate on windows.
     #[cfg(all(
@@ -69,3 +66,4 @@ fn main() -> Result<(), anyhow::Error> {
         grid.display();
     }
 }
+
