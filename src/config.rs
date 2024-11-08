@@ -1,6 +1,15 @@
+use clap::Parser;
 use configparser::ini::Ini;
 
 use crate::colors::{Color, FromHex}; 
+
+#[derive(Parser)]
+#[command(version, about = "Ascii Audio Visualizer", long_about = None)]
+struct CommandLineArgs {
+    #[arg(short, long, value_name="config_path")]
+    config_path: Option<String>
+}
+
 
 pub struct Config {
     // Colors
@@ -18,18 +27,37 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new(config_path: &str) -> Config {
+    pub fn load_config() -> Config {
+        let args = CommandLineArgs::parse();
+        return Config::new(args.config_path);
+    }
+    
+    pub fn new(config_path: Option<String>) -> Config {
         let mut config = Ini::new();
+
+        let config_path = match config_path {
+            Some(path) => {
+                path 
+            },
+            None => {
+                String::from("config.ini")
+            }
+        };
+
         config.load(config_path).expect("Could not open config path!");
 
         let color_1 = config.get("colors", "color_1")
                             .expect("Error: 'color_1' key not found in config."); 
+
         let color_2 = config.get("colors", "color_2")
                             .expect("Error: 'color_2' key not found in config."); 
+
         let color_3 = config.get("colors", "color_3")
                             .expect("Error: 'color_3' key not found in config.");
+
         let bg_color = config.get("colors", "background")
                             .expect("Error: 'background' key not found in config.");
+
         let bg_color_alt = config.get("colors", "background-alt")
                             .expect("Error: 'background-alt' key not found in config.");
 

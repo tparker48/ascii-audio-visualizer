@@ -12,6 +12,7 @@ psimple = { version = "2.0", package = "libpulse-simple-binding" }
 [dependencies]
 ansi_term = "0.12.1"
 anyhow = "1.0.89"
+clap = { version = "4.5.20", features = ["derive"] }
 configparser = "3.1.0"
 cpal = "0.15.3"
 crossterm = "0.28.1"

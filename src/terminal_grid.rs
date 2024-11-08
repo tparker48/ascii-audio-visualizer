@@ -41,7 +41,7 @@ impl TerminalGrid {
     pub fn index_2d(self: & TerminalGrid, i: usize, j: usize) -> usize {
         return j*self.width+i;
     }
-    
+
     pub fn set_cell(self: &mut TerminalGrid, c: char, color: Color, i: usize, j:usize) {
         let t = self.index_2d(i, j);
         if t > self.grid_size {
@@ -140,6 +140,8 @@ impl TerminalGrid {
             }
         }
         
+        /* 
+        // TODO determine if sync output is supported at runtime
         // Render diffs
         let temp_style = Style::new();
         
@@ -157,8 +159,6 @@ impl TerminalGrid {
             });
 
             
-        /* 
-        // TODO determine if sync output is supported at runtime
         let supports_synchronized_output = true;
         let draw: Vec<ANSIGenericString<[u8]>> = if supports_synchronized_output {
             std::iter::once(temp_style.paint(BSU))

@@ -15,9 +15,9 @@ pub mod animators;
 pub mod colors;
 
 fn main() -> Result<(), anyhow::Error> {
-    let config_ini = Config::new("config.ini");
-    let animators: Animators = Animators::new(&config_ini);                        
-    let mut grid = TerminalGrid::new(config_ini.bg_color);
+    let config = Config::load_config();
+    let animators: Animators = Animators::new(&config);                        
+    let mut grid = TerminalGrid::new(config.bg_color);
     let mut audio_features: AudioFeatures;
 
     if animators.list.len() == 0 {
@@ -45,7 +45,7 @@ fn main() -> Result<(), anyhow::Error> {
     let (process_buffer_reader, _stream) = input::wasapi::connect()
         .expect("Failed to connect audio listener");
 
-    let animation_duration = config_ini.animation_length as i32;
+    let animation_duration = config.animation_length as i32;
     let num_animators = animators.list.len() as i32;
     let start = Instant::now();
     let mut elapsed: f32;
@@ -62,7 +62,7 @@ fn main() -> Result<(), anyhow::Error> {
         elapsed = start.elapsed().as_secs_f32();
         let animator_idx = (elapsed as i32/animation_duration) % num_animators;  
         let animator_idx = animator_idx as usize;
-        animators.list[animator_idx](&config_ini, &audio_features, elapsed, &mut grid);
+        animators.list[animator_idx](&config, &audio_features, elapsed, &mut grid);
         grid.display();
     }
 }

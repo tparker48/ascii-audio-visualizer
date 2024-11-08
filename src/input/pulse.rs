@@ -82,10 +82,10 @@ fn get_default_sink_name() -> String {
         2. Query the context's server for default sink name
         3. Return default sink name
     */
-    let mut mainloop = Rc::new(RefCell::new(Mainloop::new()
+    let mainloop = Rc::new(RefCell::new(Mainloop::new()
         .expect("Failed to create mainloop")));
 
-    let mut context = Rc::new(RefCell::new(Context::new(
+    let context = Rc::new(RefCell::new(Context::new(
         mainloop.borrow().deref(),
         "Default Audio Sink Context",
         ).expect("Failed to create new context")));
