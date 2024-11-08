@@ -1,4 +1,4 @@
-![sine](https://github.com/user-attachments/assets/12e5ffc2-a9bc-45ba-b337-888afe42a4a6)
-![wavy](https://github.com/user-attachments/assets/9688aa2c-355b-47df-a117-6fca0bafa34a)
-![eq_mountains](https://github.com/user-attachments/assets/9ed6e244-7148-4701-86c5-18864178d11e)
-![spectrum](https://github.com/user-attachments/assets/ed19e1d9-4a71-4331-85b1-68af93d2dd42)
+![sine](https://github.com/user-attachments/assets/898bb93e-7b39-461b-8e39-4f1cb6501213)
+![wavy](https://github.com/user-attachments/assets/3ac3d87b-2314-4bbb-ac3b-0c28c7dc414a)
+![eq_mountains](https://github.com/user-attachments/assets/68fbb590-140a-44dd-8ef6-c65d2a6c68b3)
+![spectrum](https://github.com/user-attachments/assets/2aade753-6ec8-4aed-a93a-c598a90b8cb8)
