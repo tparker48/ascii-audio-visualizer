@@ -6,9 +6,9 @@
 ![spectrum](https://github.com/user-attachments/assets/2aade753-6ec8-4aed-a93a-c598a90b8cb8)
 
 ## Installation
-First, install dependencies:
- - Rust, to build with cargo
- - TODO, for pulseaudio on linux
+Dependencies:
+ - Rust (to build with cargo)
+ - TODO (for pulseaudio on linux)
 
 Clone and build/run with 
 ```
