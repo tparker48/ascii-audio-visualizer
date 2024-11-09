@@ -95,7 +95,7 @@ pub fn wiggly(config: &Config, features: &AudioFeatures, elapsed: f32, grid: &mu
 
             let mut sin_out = (0.05 * (zcr * 1.8 + 0.2) * dist_y * dist_x + 1.0 * elapsed).sin();
             sin_out = (sin_out + 1.0) / 2.0;
-            sin_out *= rms * rms * 1.2;
+            sin_out *= rms * (rms+0.08) * 1.2;
 
             let mut col = config.bg_alt_color;
             let mut c = '.';
@@ -143,21 +143,21 @@ pub fn eq_mountains(
         '/',
         config.color_3,
         grid.width - 1,
-        grid.height - 1,
+        grid.height,
         -char_height(hi, grid.height),
     );
     grid.draw_line_vertical(
         '\\',
         config.color_2,
         grid.width - 1,
-        grid.height - 1,
+        grid.height,
         -char_height(mi, grid.height),
     );
     grid.draw_line_vertical(
         '/',
         config.color_1,
         grid.width - 1,
-        grid.height - 1,
+        grid.height,
         -char_height(lo, grid.height),
     );
 
@@ -225,7 +225,7 @@ pub fn spectrum(config: &Config, features: &AudioFeatures, _elapsed: f32, grid: 
         let char = '=';
         let color = config.color_1;
         let x = i;
-        let y = grid.height - 1;
+        let y = grid.height;
         grid.draw_line_vertical(char, color, x, y, -col_height);
     }
 }

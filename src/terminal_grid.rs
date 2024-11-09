@@ -57,6 +57,7 @@ impl TerminalGrid {
     pub fn set_cell(self: &mut TerminalGrid, c: char, color: Color, i: usize, j: usize) {
         let t = self.index_2d(i, j);
         if t > self.grid_size {
+            println!("sdfsdf");
             return;
         }
         self.grid[t] = ColoredChar { c, color };
@@ -97,6 +98,14 @@ impl TerminalGrid {
         x_range: (usize, usize),
         y_range: (usize, usize),
     ) {
+        let mut x_range = x_range;
+        let mut y_range = y_range;
+        if y_range.0 > y_range.1 {
+            y_range = (y_range.1, y_range.0);
+        }
+        if x_range.0 > x_range.1 {
+            x_range = (x_range.1, x_range.0);
+        }
         for x in x_range.0..x_range.1 {
             for y in y_range.0..y_range.1 {
                 self.set_cell(c, color, x, y);
@@ -114,6 +123,7 @@ impl TerminalGrid {
     ) {
         let x_end = (x as i32) + len;
         if x_end <= 0 {
+            println!("test");
             return;
         }
         self.draw_line(c, color, (x, x_end as usize), (y, y + 1));
@@ -128,7 +138,8 @@ impl TerminalGrid {
         len: i32,
     ) {
         let y_end = (y as i32) + len;
-        if y_end <= 0 {
+        if y_end < 0 {
+            println!("test");
             return;
         }
         self.draw_line(c, color, (x, x + 1), (y, y_end as usize));
