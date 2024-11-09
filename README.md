@@ -31,8 +31,6 @@ cargo run -- -c [CONFIG_FILE_PATH]
 ```
 
 ## Contributing
-Pull requests are welcome! 
-
 ### Areas for improvement
  - support for more linux audio hosts (pipewire, jack, etc)
  - performance improvements to print/draw logic
