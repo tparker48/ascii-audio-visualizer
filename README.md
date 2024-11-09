@@ -8,8 +8,8 @@ Inspired by CAVA, CAVII is a configurable ASCII-based audio visualizer that runs
 ## Installation
 Dependencies:
  - Cargo
- - ALSA and PulseAudio development libraries (Linux Only)
-   - `sudo apt-get install libasound2-dev libpulse-dev`
+ - (Linux only) ALSA and PulseAudio libraries: 
+`sudo apt-get install libasound2-dev libpulse-dev`
 
 Clone repo, then build:
 ```
