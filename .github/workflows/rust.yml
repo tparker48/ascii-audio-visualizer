@@ -16,7 +16,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Install xmllint
+      run: sudo apt-get install -y libasound2-dev # libpulse-dev libpipewire-0.3-dev libjack-jackd2-dev
+
     - name: Build
       run: cargo build --verbose
+      
     #- name: Run tests TODO: make some tests?
     #  run: cargo test --verbose
