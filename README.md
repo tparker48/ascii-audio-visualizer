@@ -29,4 +29,11 @@ cargo run -- -c [CONFIG_FILE_PATH]
 ```
 
 ## Contributing
-TBD
+Pull requests are welcome! 
+
+### Areas for improvement
+ - support for more linux audio hosts (pipewire, jack, etc)
+ - performance improvements to print/draw logic
+ - new animations
+ - new audio features
+ - other?  
