@@ -1,10 +1,13 @@
-use cpal::{traits::{DeviceTrait, HostTrait, StreamTrait}, Stream, StreamError};
+use cpal::{
+    traits::{DeviceTrait, HostTrait, StreamTrait},
+    Stream, StreamError,
+};
 use std::sync::{Arc, Mutex};
 
-use crate::audio_process_buffer::AudioProcessBuffer;
 use crate::audio_formats::AsF32Audio;
+use crate::audio_process_buffer::AudioProcessBuffer;
 
-pub fn connect() -> Result<(Arc<Mutex<AudioProcessBuffer>>, Stream), anyhow::Error>  {
+pub fn connect() -> Result<(Arc<Mutex<AudioProcessBuffer>>, Stream), anyhow::Error> {
     let process_buffer_writer = Arc::new(Mutex::new(AudioProcessBuffer::new()));
     let process_buffer_reader = process_buffer_writer.clone();
 
@@ -20,25 +23,33 @@ pub fn connect() -> Result<(Arc<Mutex<AudioProcessBuffer>>, Stream), anyhow::Err
     let stream = match config.sample_format() {
         cpal::SampleFormat::I8 => device.build_input_stream(
             &config.into(),
-            move |audio_buffer, _: &_| cpal_audio_callback::<[i8]>(audio_buffer, &process_buffer_writer),
+            move |audio_buffer, _: &_| {
+                cpal_audio_callback::<[i8]>(audio_buffer, &process_buffer_writer)
+            },
             cpal_err_callback,
             None,
         )?,
         cpal::SampleFormat::I16 => device.build_input_stream(
             &config.into(),
-            move |audio_buffer, _: &_| cpal_audio_callback::<[i16]>(audio_buffer, &process_buffer_writer),
+            move |audio_buffer, _: &_| {
+                cpal_audio_callback::<[i16]>(audio_buffer, &process_buffer_writer)
+            },
             cpal_err_callback,
             None,
         )?,
         cpal::SampleFormat::I32 => device.build_input_stream(
             &config.into(),
-            move |audio_buffer, _: &_| cpal_audio_callback::<[i32]>(audio_buffer, &process_buffer_writer),
+            move |audio_buffer, _: &_| {
+                cpal_audio_callback::<[i32]>(audio_buffer, &process_buffer_writer)
+            },
             cpal_err_callback,
             None,
         )?,
         cpal::SampleFormat::F32 => device.build_input_stream(
             &config.into(),
-            move |audio_buffer, _: &_| cpal_audio_callback::<[f32]>(audio_buffer, &process_buffer_writer),
+            move |audio_buffer, _: &_| {
+                cpal_audio_callback::<[f32]>(audio_buffer, &process_buffer_writer)
+            },
             cpal_err_callback,
             None,
         )?,
@@ -48,27 +59,27 @@ pub fn connect() -> Result<(Arc<Mutex<AudioProcessBuffer>>, Stream), anyhow::Err
             )))
         }
     };
-    
+
     stream.play()?;
     Ok((process_buffer_reader, stream))
 }
 
-
-pub fn cpal_audio_callback<T: AsF32Audio + ?Sized>(input_buffer: &T, processing_buffer: &Arc<Mutex<AudioProcessBuffer>>)
-{
+pub fn cpal_audio_callback<T: AsF32Audio + ?Sized>(
+    input_buffer: &T,
+    processing_buffer: &Arc<Mutex<AudioProcessBuffer>>,
+) {
     // as_f32_samples audio format to f32
-   let input_buffer = (*input_buffer).as_f32_samples(); 
+    let input_buffer = (*input_buffer).as_f32_samples();
     // write to process buffer in mono
     if let Ok(mut buffer) = processing_buffer.try_lock() {
-            for i in 0..input_buffer.len() {
-                if i%2 == 1 {
-                    buffer.push((input_buffer[i] + input_buffer[i-1]) / 2.0);
-                }
+        for i in 0..input_buffer.len() {
+            if i % 2 == 1 {
+                buffer.push((input_buffer[i] + input_buffer[i - 1]) / 2.0);
             }
         }
     }
+}
 
 pub fn cpal_err_callback(err: StreamError) {
     eprintln!("an error occurred on stream: {}", err);
 }
-

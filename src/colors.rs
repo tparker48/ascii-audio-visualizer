@@ -1,10 +1,9 @@
 use ansi_term::Color::RGB;
 use hex::decode;
 
-
 pub const BLOCK_CHAR: char = '\u{2588}';
 
-pub type Color = (u8,u8,u8);
+pub type Color = (u8, u8, u8);
 
 pub trait FromHex: Sized {
     fn from_hex_string(hex_str: String) -> Result<Self, String>;
@@ -16,26 +15,26 @@ impl FromHex for Color {
             return Err("Invalid Hex String: Did not start with 0x.".to_string());
         }
         let hex_str = hex_str[2..hex_str.len()].to_string();
-        
+
         if hex_str.len() != 6 {
             return Err("Invalid Hex String: Invalid length".to_string());
         }
         let hex_value: Vec<u8> = decode(hex_str).expect("Invalid Hex");
-        Ok((hex_value[0],hex_value[1],hex_value[2]))
+        Ok((hex_value[0], hex_value[1], hex_value[2]))
     }
 }
 
 #[derive(Copy, Clone)]
 pub struct ColoredChar {
     pub c: char,
-    pub color: (u8,u8,u8)
+    pub color: (u8, u8, u8),
 }
 
 impl ColoredChar {
     pub fn new(character: char, color: Color) -> ColoredChar {
-        ColoredChar{
+        ColoredChar {
             c: character,
-            color
+            color,
         }
     }
     pub fn to_string(self: &ColoredChar, bg_color: Color) -> String {
