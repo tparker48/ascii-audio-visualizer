@@ -21,7 +21,7 @@ impl FromHex for Color {
             return Err("Invalid Hex String: Invalid length".to_string());
         }
         let hex_value: Vec<u8> = decode(hex_str).expect("Invalid Hex");
-        return Ok((hex_value[0],hex_value[1],hex_value[2]));
+        Ok((hex_value[0],hex_value[1],hex_value[2]))
     }
 }
 
@@ -33,7 +33,10 @@ pub struct ColoredChar {
 
 impl ColoredChar {
     pub fn new(character: char, color: Color) -> ColoredChar {
-        ColoredChar{c:character, color:color}
+        ColoredChar{
+            c: character,
+            color
+        }
     }
     pub fn to_string(self: &ColoredChar, bg_color: Color) -> String {
         let color = RGB(self.color.0, self.color.1, self.color.2);

@@ -1,7 +1,7 @@
 use std::io;
 
 use ansi_term::Color::RGB;
-use ansi_term::{ANSIByteStrings, ANSIGenericString, Style};
+use ansi_term::ANSIGenericString;
 use crossterm::cursor::{Hide, MoveTo};
 use crossterm::execute;
 use crossterm::style::Print;
@@ -9,9 +9,9 @@ use crossterm::terminal::{BeginSynchronizedUpdate, EndSynchronizedUpdate};
 
 use crate::colors::{Color, BLOCK_CHAR};
 
-const BSU:  &[u8] = "\x1B[?2026".as_bytes();
-const ESU:  &[u8] = "\x1B[?2026l".as_bytes();
-const HIDE: &[u8] = "\x1b[?25l".as_bytes();
+const _BSU:  &[u8] = "\x1B[?2026".as_bytes();
+const _ESU:  &[u8] = "\x1B[?2026l".as_bytes();
+const _HIDE: &[u8] = "\x1b[?25l".as_bytes();
 
 pub struct TerminalGrid {
     grid: Vec<ColoredChar>, 
@@ -33,13 +33,13 @@ impl TerminalGrid {
             last_grid : vec![ ColoredChar{c:BLOCK_CHAR, color:(255,255,255),} ; grid_size],
             width: w,
             height: h,
-            grid_size: grid_size,
-            bg_color: bg_color
+            grid_size,
+            bg_color
         }
     }
 
     pub fn index_2d(self: & TerminalGrid, i: usize, j: usize) -> usize {
-        return j*self.width+i;
+        j*self.width+i
     }
 
     pub fn set_cell(self: &mut TerminalGrid, c: char, color: Color, i: usize, j:usize) {
@@ -47,11 +47,11 @@ impl TerminalGrid {
         if t > self.grid_size {
             return;
         }
-        self.grid[t]= ColoredChar{c:c, color:color};
+        self.grid[t]= ColoredChar{c, color};
     }
 
     pub fn get_cell(self: & TerminalGrid, i:usize, j:usize) -> ColoredChar {
-        return self.grid[self.index_2d(i, j)];
+        self.grid[self.index_2d(i, j)]
     }
 
     pub fn get_line(self: & TerminalGrid, j:usize) -> String {
@@ -74,25 +74,31 @@ impl TerminalGrid {
                 result.push('\n');
             }
         }
-        return result;
+        result
     }
 
-    pub fn draw_line(&mut self, c: char, color: Color, x: usize, y: usize, dx: i16, dy: i16, reps: usize) {
-        let mut pos_x = x as i16;
-        let mut pos_y = y as i16;
-        for _ in 0..reps{
-            self.set_cell(c, color, pos_x as usize, pos_y as usize);
-            pos_x += dx;
-            pos_y += dy;
+    pub fn draw_line(&mut self, c: char, color: Color, x_range: (usize, usize), y_range: (usize, usize)) {
+        for x in x_range.0 .. x_range.1 {
+            for y in y_range.0 .. y_range.1 {
+                self.set_cell(c, color, x, y);
+            }
+       } 
+    }
+
+    pub fn draw_line_horizontal(self: &mut TerminalGrid, c: char, color: Color, x:usize, y:usize, len: i32) {
+        let x_end = (x as i32) + len;
+        if x_end <= 0 {
+            return;
         }
+        self.draw_line(c, color, (x, x_end as usize), (y,y+1));
     }
 
-    pub fn draw_line_horizontal(self: &mut TerminalGrid, c: char, color: Color, x:usize, y:usize, len: usize) {
-        self.draw_line(c, color, x, y, 1, 0, len);
-    }
-
-    pub fn draw_line_vertical(self: &mut TerminalGrid, c: char, color: Color, x:usize, y:usize, len: usize) {
-        self.draw_line(c, color, x, y, 0, 1, len);
+    pub fn draw_line_vertical(self: &mut TerminalGrid, c: char, color: Color, x:usize, y:usize, len: i32) {
+        let y_end = (y as i32) + len;
+        if y_end <= 0 {
+            return;
+        }
+        self.draw_line(c, color, (x, x+1), (y,y_end as usize));
     }
 
     pub fn draw_box(self: &mut TerminalGrid, c: char, color: Color, x:usize, y:usize, w:usize, h:usize) {
@@ -201,7 +207,7 @@ pub struct ColoredChar {
 
 impl ColoredChar {
     pub fn new(character: char, color: Color) -> ColoredChar {
-        ColoredChar{c:character, color:color}
+        ColoredChar{c:character, color}
     }
     pub fn to_string(self: &ColoredChar, bg_color: Color) -> String {
         let color = RGB(self.color.0, self.color.1, self.color.2);

@@ -33,10 +33,7 @@ impl AsF32Audio for [i32] {
 
 impl AsF32Audio for [f32] {
     fn as_f32_samples(&self) -> Vec<f32> {
-        self
-          .iter()
-          .map(|f|*f)
-          .collect()
+        self.to_vec()
     }
 }
 

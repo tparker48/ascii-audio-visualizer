@@ -14,7 +14,7 @@ impl Animators {
                                 .iter()
                                 .map(|name|match_animator(name))
                                 .collect();
-        return Animators { list: animators }
+        Animators { list: animators }
     }
 }
 
@@ -32,7 +32,7 @@ pub fn sine_like(config: &Config, features: &AudioFeatures, _elapsed: f32, grid:
     let rms = features.root_mean_squared.smoothed_val;
     let zcr = features.zero_crossing_rate.smoothed_val;
     
-    let center_idx = grid.height/2;
+    let center_idx = (grid.height/2) as i32;
     
     // fill background
     for x in 0..grid.width {
@@ -41,7 +41,7 @@ pub fn sine_like(config: &Config, features: &AudioFeatures, _elapsed: f32, grid:
             config.bg_alt_color,
             x, 
             0, 
-            grid.height);
+            grid.height as i32);
     }
     
     // draw waves
@@ -56,24 +56,24 @@ pub fn sine_like(config: &Config, features: &AudioFeatures, _elapsed: f32, grid:
         sin_out = 15.0* rms * rms * (sin_out*0.80 + 0.2) + 0.5;
  
         // draw waves 
-        let wave_size = 2*(sin_out as usize).min(center_idx);
+        let wave_size = 2*(sin_out as i32).min(center_idx);
         grid.draw_line_vertical(
             '*',
             config.color_1,
             x, 
-            center_idx-wave_size/2, 
+            (center_idx-wave_size/2) as usize, 
             wave_size);
         grid.draw_line_vertical(
             '*', 
             config.color_2, 
             x, 
-            center_idx-wave_size/4, 
+            (center_idx-wave_size/4) as usize, 
             wave_size/2);
         grid.draw_line_vertical(
             '*', 
             config.color_3, 
             x, 
-            center_idx-wave_size/8, 
+            (center_idx-wave_size/8) as usize, 
             wave_size/4);
     }
 } 
@@ -88,18 +88,18 @@ pub fn wiggly(config: &Config, features: &AudioFeatures, elapsed: f32, grid: &mu
         for j in 0..grid.height{
             let dist_x = (i as f32) - (center_x as f32);
             let dist_y = (j as f32) - (center_y as f32);
+
             let mut sin_out = (0.05*(zcr*1.8 + 0.2) *dist_y*dist_x + 1.0*elapsed).sin();
             sin_out = (sin_out + 1.0)/2.0;
-            sin_out = sin_out * (rms*rms*1.2);
+            sin_out *= rms*rms*1.2;
+
             let mut col = config.bg_alt_color;
             let mut c = '.';
             if sin_out > 0.5 {
                 col = config.color_3;
                 c = '*';
-            } else if sin_out > 0.2 {
-                col = config.bg_alt_color;
-                c = '+';
-            } else if sin_out > 0.01 {
+            }
+            else if sin_out > 0.01 {
                 col = config.bg_alt_color;
                 c = '+';
             }
@@ -116,8 +116,8 @@ pub fn eq_mountains(config: &Config, features: &AudioFeatures, _elapsed: f32, gr
     let mi = features.mi.smoothed_val * 0.5 * rms;
     let hi = features.hi.smoothed_val * 2.0 * rms;
 
-    fn char_height(num: f32, max_height: usize) -> usize {
-        ((num * (max_height as f32)) as usize).min(max_height)
+    fn char_height(num: f32, max_height: usize) -> i32{
+        ((num * (max_height as f32)) as i32).min(max_height as i32)
     }
 
     for i in 0..grid.width-1 {
@@ -125,10 +125,10 @@ pub fn eq_mountains(config: &Config, features: &AudioFeatures, _elapsed: f32, gr
             grid.set_cell(grid.get_cell(i+1,j).c, grid.get_cell(i+1,j).color, i, j);
         } 
     }
-    grid.draw_line_vertical(' ', config.bg_color, grid.width-1, 0, grid.height);
-    grid.draw_line('/', config.color_3, grid.width-1, grid.height-1, 0, -1, char_height(hi, grid.height));
-    grid.draw_line('\\', config.color_2, grid.width-1, grid.height-1, 0, -1, char_height(mi, grid.height));
-    grid.draw_line('/', config.color_1, grid.width-1, grid.height-1, 0, -1, char_height(lo, grid.height));
+    grid.draw_line_vertical(' ', config.bg_color, grid.width-1, 0, grid.height as i32);
+    grid.draw_line_vertical('/',  config.color_3, grid.width-1, grid.height-1, -char_height(hi, grid.height));
+    grid.draw_line_vertical('\\', config.color_2, grid.width-1, grid.height-1, -char_height(mi, grid.height));
+    grid.draw_line_vertical('/',  config.color_1, grid.width-1, grid.height-1, -char_height(lo, grid.height)); 
 
     for j in 0..grid.height{
         if grid.get_cell(grid.width-1, j).c == ' ' && j%3==0{
@@ -153,36 +153,37 @@ pub fn spectrum(config: &Config, features: &AudioFeatures, _elapsed: f32, grid: 
                     (freq.log2(), (15.0*mag).log10())
                 })       
                 .collect();
+
     let max_freq = freq_spectrum[freq_spectrum.len()-1].0;
     let min_freq = freq_spectrum[0].0;
     let col_width = (max_freq-min_freq) / (grid.width as f32);
     let mut heights = vec![0.0; grid.width];
-    for i in 0..grid.width {
+    for (i, height) in heights.iter_mut().enumerate() {
         let range_start = min_freq + col_width * (i as f32);
         let range_end = range_start + col_width;
         let mut hits = 0;
         for (freq,magnitude) in freq_spectrum.iter() {
             if range_start <= *freq && *freq < range_end {
-                heights[i] += *magnitude;
+                *height += *magnitude;
                 hits += 1;
             }
         }
-        heights[i] /= hits as f32;
+        *height /= hits as f32;
     }
 
     let cutoff = 0.1;
     let mut last_nonzero_l = 0.0;
     let mut last_nonzero_r = 0.0;
-    for i in 0..grid.width{
-        if heights[i] > cutoff {
-            last_nonzero_l = heights[i];
-        } else {
-            heights[i] = last_nonzero_l;
+    for height in heights.iter_mut() {
+        if *height > cutoff {
+            last_nonzero_l = *height;
+        } 
+        else {
+            *height = last_nonzero_l;
         }
-        
         last_nonzero_l *= 0.7;
-        
     }
+
     for i in 0..grid.width {
         let rev_i = grid.width - i - 1;
         if heights[rev_i] > cutoff {
@@ -194,12 +195,12 @@ pub fn spectrum(config: &Config, features: &AudioFeatures, _elapsed: f32, grid: 
 
     }
 
-    for i in 0..grid.width {
-        let col_height = ((heights[i]*(grid.height as f32)) as usize).min(grid.height);
+    for (i,height) in heights.iter().enumerate() {
+        let col_height = ((*height*(grid.height as f32)) as i32).min(grid.height as i32);
         let char = '=';
         let color = config.color_1;
         let x = i;
         let y = grid.height -1;
-        grid.draw_line(char, color, x, y, 0, -1, col_height);
+        grid.draw_line_vertical(char, color, x, y, -col_height);
     } 
 }

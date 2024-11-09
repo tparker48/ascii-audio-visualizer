@@ -8,11 +8,11 @@ const FS: usize = 48000;
 const FFT_BIN_WIDTH: f32 = (FS as f32) / (FFT_SIZE as f32);
 
 pub fn bin_idx_to_center_freq(bin_idx: usize) -> f32 {
-    return ((bin_idx as f32) * FFT_BIN_WIDTH) + 0.5*FFT_BIN_WIDTH;
+    ((bin_idx as f32) * FFT_BIN_WIDTH) + 0.5*FFT_BIN_WIDTH
 }
 
 pub fn bin_idx_to_freq(bin_idx: usize) -> f32 {
-    return (bin_idx as f32) * FFT_BIN_WIDTH;
+    (bin_idx as f32) * FFT_BIN_WIDTH
 }
 
 pub struct AudioProcessBuffer {
@@ -25,8 +25,7 @@ pub struct AudioProcessBuffer {
 impl AudioProcessBuffer {
     pub fn new() -> AudioProcessBuffer {
         let mut planner = FftPlanner::new();
-
-        return AudioProcessBuffer{
+        AudioProcessBuffer{
             buffer: [0.0; BUFFER_SIZE],
             head: 0,
             fft: planner.plan_fft_forward(FFT_SIZE),
@@ -35,7 +34,7 @@ impl AudioProcessBuffer {
     }
 
     pub fn remaining_cap(self: &AudioProcessBuffer) -> usize {
-        return self.buffer.len() - self.head;
+        self.buffer.len() - self.head
     }
 
     pub fn push(self: &mut AudioProcessBuffer, value: f32) {
@@ -114,7 +113,7 @@ impl AudioProcessBuffer {
         self.features.hi.write(hi);
     }
 
-    fn _compute_spectral_centroid(fft_buffer: &Vec<Complex<f32>>) -> f32 {
+    fn _compute_spectral_centroid(fft_buffer: &[Complex<f32>]) -> f32 {
         // sum of f[i]*x[i], where f[i] and x[i] are central frequency and magnitudes of bin i
         let sum1: f32 = fft_buffer
                             .iter()
@@ -126,7 +125,7 @@ impl AudioProcessBuffer {
                             .iter()
                             .map(|c| c.norm())
                             .sum();
-        return sum1/sum2;
+        sum1/sum2
     }
 
     fn compute_fft(&mut self) -> Vec<f32> {
@@ -146,9 +145,9 @@ impl AudioProcessBuffer {
                                     .collect();
         // Normalize 
         let mut max_mag = 1.0;
-        for i in 0..magnitudes.len(){
-            if magnitudes[i] > max_mag {
-                max_mag = magnitudes[i];
+        for mag in magnitudes.iter(){
+            if *mag > max_mag {
+                max_mag = *mag;
             } 
         }
         let magnitudes: Vec<f32> = magnitudes
@@ -157,11 +156,17 @@ impl AudioProcessBuffer {
                                         .collect();
 
         // write to features
-        for i in 0..fft_buffer.len() {
-            self.features.fft_bins[i].write(magnitudes[i]);
+        for (i,mag) in magnitudes.iter().enumerate() {
+            self.features.fft_bins[i].write(*mag);
         }
+        
+        magnitudes
+    }
+}
 
-        return magnitudes;
+impl Default for AudioProcessBuffer {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -211,8 +216,8 @@ impl SmoothedValue {
             adaptive_max:starter_value,
             min: starter_value, 
             max:starter_value,
-            adaptive: adaptive,
-            normalized: normalized
+            adaptive,
+            normalized
         }
     }
 
@@ -226,7 +231,7 @@ impl SmoothedValue {
         self.adaptive_min = self.adaptive_min.min(value);
 
         if self.normalized && self.max > 0.0 {
-            value = value / self.max;
+            value /= self.max;
         } else if self.adaptive && self.adaptive_max > 0.0 {
             value = (value-self.adaptive_min) / (self.adaptive_max-self.adaptive_min);
         } 

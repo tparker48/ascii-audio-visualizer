@@ -20,28 +20,24 @@ fn main() -> Result<(), anyhow::Error> {
     let mut grid = TerminalGrid::new(config.bg_color);
     let mut audio_features: AudioFeatures;
 
-    if animators.list.len() == 0 {
+    if animators.list.is_empty() {
         return Err(anyhow::Error::msg("Error: no active animations."));
     }
 
     // Listen to audio via pulseaudio API on linux.
-    #[cfg(all(
+    #[cfg(
         any(
             target_os = "linux",
             target_os = "dragonfly",
             target_os = "freebsd",
             target_os = "netbsd"
         )
-    ))]
+    )]
     let process_buffer_reader = input::pulse::connect()
         .expect("Failed to connect audio listener");
 
     // Listen to audio via CPAL crate on windows.
-    #[cfg(all(
-        any(
-            target_os = "windows",
-        )
-    ))]
+    #[cfg(target_os = "windows")]
     let (process_buffer_reader, _stream) = input::wasapi::connect()
         .expect("Failed to connect audio listener");
 

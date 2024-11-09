@@ -29,7 +29,7 @@ pub struct Config {
 impl Config {
     pub fn load_config() -> Config {
         let args = CommandLineArgs::parse();
-        return Config::new(args.config_path);
+        Config::new(args.config_path)
     }
     
     pub fn new(config_path: Option<String>) -> Config {
@@ -85,8 +85,8 @@ impl Config {
             color_3: Color::from_hex_string(color_3).expect("Invalid Hex!"),
             bg_color: Color::from_hex_string(bg_color).expect("Invalid Hex!"),
             bg_alt_color: Color::from_hex_string(bg_color_alt).expect("Invalid Hex!"),
-            animation_length: animation_length,
-            animations: animations 
+            animation_length,
+            animations 
         }
     }
 }
