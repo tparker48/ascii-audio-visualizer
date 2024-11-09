@@ -10,13 +10,23 @@ Dependencies:
  - Rust (to build with cargo)
  - TODO (for pulseaudio on linux)
 
-Clone and build/run with 
+Clone and build with:
 ```
-cargo run
+cargo build
 ```
 
 ## Configuration
+See config.ini for default config example
+
 ## Usage
+Run with default config file:
+```
+cargo run
+```
+Run with custom config file:
+```
+cargo run -- -c [CONFIG_FILE_PATH]
+```
+
 ## Contributing
-
-
+TBD
