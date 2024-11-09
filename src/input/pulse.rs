@@ -12,7 +12,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::audio_formats::AsF32Audio;
-use crate::audio_process_buffer::AudioProcessBuffer;
+use crate::audio_processing::AudioProcessBuffer;
 
 const BUFFER_SIZE: usize = 1024;
 

@@ -1,4 +1,4 @@
-use crate::audio_process_buffer::{bin_idx_to_freq, AudioFeatures};
+use crate::audio_processing::{bin_idx_to_freq, AudioFeatures};
 use crate::config::Config;
 use crate::terminal_grid::TerminalGrid;
 

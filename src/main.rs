@@ -2,13 +2,13 @@ use animators::Animators;
 use std::time::Instant;
 use std::{thread, time};
 
-use audio_process_buffer::AudioFeatures;
+use audio_processing::AudioFeatures;
 use config::Config;
 use terminal_grid::TerminalGrid;
 
 pub mod animators;
 pub mod audio_formats;
-pub mod audio_process_buffer;
+pub mod audio_processing;
 pub mod colors;
 pub mod config;
 pub mod input;

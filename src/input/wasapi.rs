@@ -5,7 +5,7 @@ use cpal::{
 use std::sync::{Arc, Mutex};
 
 use crate::audio_formats::AsF32Audio;
-use crate::audio_process_buffer::AudioProcessBuffer;
+use crate::audio_processing::AudioProcessBuffer;
 
 pub fn connect() -> Result<(Arc<Mutex<AudioProcessBuffer>>, Stream), anyhow::Error> {
     let process_buffer_writer = Arc::new(Mutex::new(AudioProcessBuffer::new()));
