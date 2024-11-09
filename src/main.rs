@@ -66,4 +66,3 @@ fn main() -> Result<(), anyhow::Error> {
         grid.display();
     }
 }
-
