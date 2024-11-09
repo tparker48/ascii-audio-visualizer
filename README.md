@@ -6,6 +6,11 @@
 ![spectrum](https://github.com/user-attachments/assets/2aade753-6ec8-4aed-a93a-c598a90b8cb8)
 
 ## Installation
+Clone and build/run with 
+```
+cargo run
+```
+
 ## Configuration
 ## Usage
 ## Contributing
