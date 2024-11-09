@@ -1,4 +1,4 @@
-# In-Terminal ASCII Audio Visualizer, Written in Rust
+# cavii: In-Terminal ASCII Audio Visualizer, Written in Rust
 
 ![sine](https://github.com/user-attachments/assets/898bb93e-7b39-461b-8e39-4f1cb6501213)  |  ![wavy](https://github.com/user-attachments/assets/3ac3d87b-2314-4bbb-ac3b-0c28c7dc414a)
 :-------------------------:|:-------------------------:
