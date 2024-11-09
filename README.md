@@ -9,8 +9,9 @@ Dependencies:
  - Rust (to build with cargo)
  - TODO (for pulseaudio on linux)
 
-Clone and build with:
+1. Clone repo, then build:
 ```
+cd ascii-audio-visualizer
 cargo build
 ```
 
