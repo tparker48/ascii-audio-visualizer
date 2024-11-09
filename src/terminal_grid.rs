@@ -1,7 +1,7 @@
 use std::io;
 
-use ansi_term::ANSIGenericString;
 use ansi_term::Color::RGB;
+use ansi_term::{ANSIGenericString, Style};
 use crossterm::cursor::{Hide, MoveTo};
 use crossterm::execute;
 use crossterm::style::Print;
@@ -264,16 +264,16 @@ impl ColoredChar {
         }
     }
     pub fn to_string(self: &ColoredChar, bg_color: Color) -> String {
-        let color = RGB(self.color.0, self.color.1, self.color.2);
-        let bg_color = RGB(bg_color.0, bg_color.1, bg_color.2);
-        color.on(bg_color).paint(self.c.to_string()).to_string()
+        self.painted(bg_color).paint(self.c.to_string()).to_string()
     }
     pub fn to_ansi(self: &ColoredChar, bg_color: Color) -> ANSIGenericString<'_, [u8]> {
+        self.painted(bg_color)
+            .paint(self.c.to_string().as_bytes().to_owned())
+    }
+    fn painted(self, bg_color: Color) -> Style {
         let color = RGB(self.color.0, self.color.1, self.color.2);
         let bg_color = RGB(bg_color.0, bg_color.1, bg_color.2);
-        color
-            .on(bg_color)
-            .paint(self.c.to_string().as_bytes().to_owned())
+        color.on(bg_color)
     }
 }
 
