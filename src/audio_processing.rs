@@ -1,8 +1,8 @@
 use rustfft::{num_complex::Complex, FftPlanner};
 use std::sync::Arc;
 
-const BUFFER_SIZE: usize = 1024;
-const FFT_SIZE: usize = 1024;
+const BUFFER_SIZE: usize = 800;
+const FFT_SIZE: usize = 800;
 const SMOOTHING_SIZE: usize = 12;
 const FS: usize = 48000;
 const FFT_BIN_WIDTH: f32 = (FS as f32) / (FFT_SIZE as f32);

@@ -1,7 +1,7 @@
 use std::io;
 
 use ansi_term::Color::RGB;
-use ansi_term::{ANSIGenericString, Style};
+use ansi_term::{ANSIByteStrings, ANSIGenericString, Style};
 use crossterm::cursor::{Hide, MoveTo};
 use crossterm::execute;
 use crossterm::style::Print;
@@ -9,9 +9,9 @@ use crossterm::terminal::{BeginSynchronizedUpdate, EndSynchronizedUpdate};
 
 use crate::colors::{Color, BLOCK_CHAR};
 
-const _BSU: &[u8] = "\x1B[?2026".as_bytes();
-const _ESU: &[u8] = "\x1B[?2026l".as_bytes();
-const _HIDE: &[u8] = "\x1b[?25l".as_bytes();
+const BSU: &[u8] = "\x1B[?2026".as_bytes();
+const ESU: &[u8] = "\x1B[?2026l".as_bytes();
+const HIDE: &[u8] = "\x1b[?25l".as_bytes();
 
 pub struct TerminalGrid {
     grid: Vec<ColoredChar>,
@@ -203,37 +203,29 @@ impl TerminalGrid {
         for i in 0..self.width {
             for j in 0..self.height {
                 let idx = self.index_2d(i, j);
-                if self.grid[idx] != self.last_grid[idx] {
+                if self.grid[idx] != self.last_grid[idx] || idx < 12 {
                     self.last_grid[idx] = self.grid[idx];
                     diffs.push((i, j, self.grid[idx]));
                 }
             }
         }
 
-        /*
         // TODO determine if sync output is supported at runtime
         // Render diffs
         let temp_style = Style::new();
 
-        let draw_commands = diffs
-            .iter()
-            .flat_map(|(x,y,cc)|{
-                std::iter::once(
-                    temp_style.paint(
-                        format!("\x1B[{};{}H", y+1, x+1)
-                            .as_bytes()
-                            .to_owned(),
-                    ),
-                )
-                .chain(std::iter::once(cc.to_ansi(self.bg_color)))
-            });
+        let draw_commands = diffs.iter().flat_map(|(x, y, cc)| {
+            std::iter::once(
+                temp_style.paint(format!("\x1B[{};{}H", y + 1, x + 1).as_bytes().to_owned()),
+            )
+            .chain(std::iter::once(cc.to_ansi(self.bg_color)))
+        });
 
-
-        let supports_synchronized_output = true;
+        let supports_synchronized_output = false;
         let draw: Vec<ANSIGenericString<[u8]>> = if supports_synchronized_output {
             std::iter::once(temp_style.paint(BSU))
-                .chain(draw_commands)
                 .chain(std::iter::once(temp_style.paint(HIDE)))
+                .chain(draw_commands)
                 .chain(std::iter::once(temp_style.paint(ESU)))
                 .collect()
         } else {
@@ -242,13 +234,11 @@ impl TerminalGrid {
                 .collect()
         };
 
-
         ANSIByteStrings(&draw)
             .write_to(&mut std::io::stdout())
             .unwrap();
 
-        */
-
+        /*
         execute!(
             io::stdout(),
             BeginSynchronizedUpdate,
@@ -258,6 +248,7 @@ impl TerminalGrid {
             EndSynchronizedUpdate
         )
         .unwrap();
+        */
     }
 }
 

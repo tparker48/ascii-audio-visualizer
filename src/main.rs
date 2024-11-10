@@ -43,7 +43,7 @@ fn main() -> Result<(), anyhow::Error> {
     let start = Instant::now();
     let mut elapsed: f32;
     loop {
-        thread::sleep(time::Duration::from_secs_f32(0.015));
+        thread::sleep(time::Duration::from_secs_f32(0.014));
 
         match process_buffer_reader.try_lock() {
             Ok(buffer) => {
