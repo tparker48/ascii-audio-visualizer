@@ -95,7 +95,7 @@ pub fn wiggly(config: &Config, features: &AudioFeatures, elapsed: f32, grid: &mu
 
             let mut sin_out = (0.05 * (zcr * 1.8 + 0.2) * dist_y * dist_x + 1.0 * elapsed).sin();
             sin_out = (sin_out + 1.0) / 2.0;
-            sin_out *= rms * (rms+0.08) * 1.2;
+            sin_out *= rms * (rms + 0.08) * 1.2;
 
             let mut col = config.bg_alt_color;
             let mut c = '.';

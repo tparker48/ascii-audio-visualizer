@@ -101,10 +101,9 @@ impl TerminalGrid {
     ) {
         if len < 0 {
             let len = len.abs() as usize;
-            self.draw_box(c,color,x-len,y,len,1);
-        }
-        else {
-            self.draw_box(c,color,x,y,len as usize,1);
+            self.draw_box(c, color, x - len, y, len, 1);
+        } else {
+            self.draw_box(c, color, x, y, len as usize, 1);
         }
     }
 
@@ -118,10 +117,9 @@ impl TerminalGrid {
     ) {
         if len < 0 {
             let len = len.abs() as usize;
-            self.draw_box(c,color,x,y-len,1,len);
-        }
-        else {
-            self.draw_box(c,color,x,y,1,len as usize);
+            self.draw_box(c, color, x, y - len, 1, len);
+        } else {
+            self.draw_box(c, color, x, y, 1, len as usize);
         }
     }
 
