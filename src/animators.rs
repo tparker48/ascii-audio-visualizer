@@ -42,7 +42,7 @@ pub fn sine_like(
 
     // fill background
     for x in 0..grid.width {
-        grid.draw_line_vertical('.', config.bg_alt_color, x, 0, grid.height as i32);
+        grid.draw_line_v('.', config.bg_alt_color, x, 0, grid.height as i32);
     }
 
     // draw waves
@@ -58,21 +58,21 @@ pub fn sine_like(
 
         // draw waves
         let wave_size = 2 * (sin_out as i32).min(center_idx);
-        grid.draw_line_vertical(
+        grid.draw_line_v(
             '*',
             config.color_1,
             x,
             (center_idx - wave_size / 2) as usize,
             wave_size,
         );
-        grid.draw_line_vertical(
+        grid.draw_line_v(
             '*',
             config.color_2,
             x,
             (center_idx - wave_size / 4) as usize,
             wave_size / 2,
         );
-        grid.draw_line_vertical(
+        grid.draw_line_v(
             '*',
             config.color_3,
             x,
@@ -138,22 +138,22 @@ pub fn eq_mountains(
             );
         }
     }
-    grid.draw_line_vertical(' ', config.bg_color, grid.width - 1, 0, grid.height as i32);
-    grid.draw_line_vertical(
+    grid.draw_line_v(' ', config.bg_color, grid.width - 1, 0, grid.height as i32);
+    grid.draw_line_v(
         '/',
         config.color_3,
         grid.width - 1,
         grid.height,
         -char_height(hi, grid.height),
     );
-    grid.draw_line_vertical(
+    grid.draw_line_v(
         '\\',
         config.color_2,
         grid.width - 1,
         grid.height,
         -char_height(mi, grid.height),
     );
-    grid.draw_line_vertical(
+    grid.draw_line_v(
         '/',
         config.color_1,
         grid.width - 1,
@@ -226,6 +226,6 @@ pub fn spectrum(config: &Config, features: &AudioFeatures, _elapsed: f32, grid: 
         let color = config.color_1;
         let x = i;
         let y = grid.height;
-        grid.draw_line_vertical(char, color, x, y, -col_height);
+        grid.draw_line_v(char, color, x, y, -col_height);
     }
 }

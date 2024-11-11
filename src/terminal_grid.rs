@@ -91,29 +91,7 @@ impl TerminalGrid {
         result
     }
 
-    pub fn draw_line(
-        &mut self,
-        c: char,
-        color: Color,
-        x_range: (usize, usize),
-        y_range: (usize, usize),
-    ) {
-        let mut x_range = x_range;
-        let mut y_range = y_range;
-        if y_range.0 > y_range.1 {
-            y_range = (y_range.1, y_range.0);
-        }
-        if x_range.0 > x_range.1 {
-            x_range = (x_range.1, x_range.0);
-        }
-        for x in x_range.0..x_range.1 {
-            for y in y_range.0..y_range.1 {
-                self.set_cell(c, color, x, y);
-            }
-        }
-    }
-
-    pub fn draw_line_horizontal(
+    pub fn draw_line_h(
         self: &mut TerminalGrid,
         c: char,
         color: Color,
@@ -121,15 +99,16 @@ impl TerminalGrid {
         y: usize,
         len: i32,
     ) {
-        let x_end = (x as i32) + len;
-        if x_end <= 0 {
-            println!("test");
-            return;
+        if len < 0 {
+            let len = len.abs() as usize;
+            self.draw_box(c,color,x-len,y,len,1);
         }
-        self.draw_line(c, color, (x, x_end as usize), (y, y + 1));
+        else {
+            self.draw_box(c,color,x,y,len as usize,1);
+        }
     }
 
-    pub fn draw_line_vertical(
+    pub fn draw_line_v(
         self: &mut TerminalGrid,
         c: char,
         color: Color,
@@ -137,12 +116,13 @@ impl TerminalGrid {
         y: usize,
         len: i32,
     ) {
-        let y_end = (y as i32) + len;
-        if y_end < 0 {
-            println!("test");
-            return;
+        if len < 0 {
+            let len = len.abs() as usize;
+            self.draw_box(c,color,x,y-len,1,len);
         }
-        self.draw_line(c, color, (x, x + 1), (y, y_end as usize));
+        else {
+            self.draw_box(c,color,x,y,1,len as usize);
+        }
     }
 
     pub fn draw_box(
@@ -161,7 +141,7 @@ impl TerminalGrid {
         }
     }
 
-    pub fn reset(self: &mut TerminalGrid) {
+    pub fn clear(self: &mut TerminalGrid) {
         self.fill(' ', self.bg_color);
     }
 
