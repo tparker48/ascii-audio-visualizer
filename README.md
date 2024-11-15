@@ -36,4 +36,5 @@ cargo run -- -c [CONFIG_FILE_PATH]
  - performance improvements to print/draw logic
  - new animations
  - new audio features
+ - distribtute as executable
  - other?  
