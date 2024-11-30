@@ -1,13 +1,6 @@
-use std::io;
-
+use crate::colors::{Color, BLOCK_CHAR};
 use ansi_term::Color::RGB;
 use ansi_term::{ANSIByteStrings, ANSIGenericString, Style};
-use crossterm::cursor::{Hide, MoveTo};
-use crossterm::execute;
-use crossterm::style::Print;
-use crossterm::terminal::{BeginSynchronizedUpdate, EndSynchronizedUpdate};
-
-use crate::colors::{Color, BLOCK_CHAR};
 
 const BSU: &[u8] = "\x1B[?2026".as_bytes();
 const ESU: &[u8] = "\x1B[?2026l".as_bytes();
@@ -100,7 +93,7 @@ impl TerminalGrid {
         len: i32,
     ) {
         if len < 0 {
-            let len = len.abs() as usize;
+            let len = -len as usize;
             self.draw_box(c, color, x - len, y, len, 1);
         } else {
             self.draw_box(c, color, x, y, len as usize, 1);
@@ -116,7 +109,7 @@ impl TerminalGrid {
         len: i32,
     ) {
         if len < 0 {
-            let len = len.abs() as usize;
+            let len = -len as usize;
             self.draw_box(c, color, x, y - len, 1, len);
         } else {
             self.draw_box(c, color, x, y, 1, len as usize);
@@ -215,18 +208,6 @@ impl TerminalGrid {
         ANSIByteStrings(&draw)
             .write_to(&mut std::io::stdout())
             .unwrap();
-
-        /*
-        execute!(
-            io::stdout(),
-            BeginSynchronizedUpdate,
-            MoveTo(0, 0),
-            Print(self.get_lines()),
-            Hide,
-            EndSynchronizedUpdate
-        )
-        .unwrap();
-        */
     }
 }
 

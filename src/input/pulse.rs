@@ -26,7 +26,7 @@ pub fn connect() -> Result<Arc<Mutex<AudioProcessBuffer>>, anyhow::Error> {
         audio_listener(process_buffer_writer);
     });
 
-    return Ok(process_buffer_reader);
+    Ok(process_buffer_reader)
 }
 
 fn audio_listener(shared_buffer: Arc<Mutex<AudioProcessBuffer>>) {
@@ -60,7 +60,7 @@ fn audio_listener(shared_buffer: Arc<Mutex<AudioProcessBuffer>>) {
     )
     .unwrap();
 
-    let mut raw_buffer = [0 as u8; BUFFER_SIZE * 4];
+    let mut raw_buffer = [0; BUFFER_SIZE * 4];
     loop {
         // capture raw bytes
         s.read(&mut raw_buffer)
@@ -135,5 +135,5 @@ fn get_default_sink_name() -> String {
     mainloop.borrow_mut().quit(Retval(0));
 
     let name_ref = name_read_ptr.lock().expect("Error acquiring mutex lock");
-    return name_ref.clone();
+    name_ref.clone()
 }
